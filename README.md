@@ -24,6 +24,7 @@ phpMyAdmin
 
 RedisInsight
 
-WG Admin
-
+#### WG Admin
+GUI: http://10.0.0.4:51821/  
+No username/pass
 
