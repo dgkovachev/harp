@@ -1,30 +1,34 @@
-# EventBuzz
-EventBuzz is School Events & Notification Center platform, developed as part of the AIBEST Tech Academy in 2026.
+# HARP
+HARP stand for "Hub for Academic Resources and Planning".  
+HARP is School Events & Notification Center platform, developed as part of the AIBEST Tech Academy in 2026.
 
 ## Documents
 Platofrm requirements are documented - [here](docs/school-events-notification-center.md)  
 Grading requirements are documented - [here](docs/school-events-grading-criteria.md)
 
-## Infrastructure and Services
+## Infrastructure and Design
 ### High-level design
 
-![Diagram](docs/eventbuzz.drawio.png)
+![Diagram](docs/harp-hld.png)
 
 ### Server Login
 
 ```bash
-ssh master@20.240.203.38
+ssh master@74.241.251.80
 ```
 
-### Services
+## Services
 
-Portainer
+### Portainer
 
-phpMyAdmin
+### phpMyAdmin
 
-RedisInsight
+### RedisInsight
 
-#### WG Admin
-GUI: http://10.0.0.4:51821/  
-No username/pass
+### WG Admin
+Access the GUI via http://10.0.0.4:51821/  
+No username | pass
 
+### Nginx Proxy Manager
+Access the GUI via http://10.0.0.4:81/
+dgkovachev@gmail.com | tjAuO7#&vZv4^v#TWpf*
