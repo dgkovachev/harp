@@ -41,6 +41,8 @@ jobs:
       - name: Setup SSH
         run: |
           ls -la
+          pwd
+          whomai
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
