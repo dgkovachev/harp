@@ -19,11 +19,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug repo structure
-        run: |
-          pwd
-          ls -la
-          find . -maxdepth 2 -type d | sort
+      # - name: Debug repo structure
+      #   run: |
+      #     pwd
+      #     ls -la
+      #     find . -maxdepth 2 -type d | sort
 
       # - name: Setup PHP
       #   uses: shivammathur/setup-php@v2
@@ -38,18 +38,18 @@ jobs:
       # - name: Install dependencies
       #   run: composer install --no-dev --prefer-dist --optimize-autoloader
 
-      # - name: Setup SSH
-      #   run: |
-      #     ls -la
-      #     mkdir -p ~/.ssh
-      #     echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-      #     chmod 600 ~/.ssh/id_rsa
-      #     ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+      - name: Setup SSH
+        run: |
+          ls -la
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      # - name: Ensure remote folder exists
-      #   run: |
-      #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-      #       "ls -la"
+      - name: Ensure remote folder exists
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "ls -la"
 
       # - name: Deploy API with rsync
       #   run: |
