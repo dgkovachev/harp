@@ -13,7 +13,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: api
+        working-directory: ./api
 
     steps:
       # - name: Checkout
