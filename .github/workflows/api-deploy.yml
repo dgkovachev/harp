@@ -42,7 +42,7 @@ jobs:
         run: |
           ls -la
           pwd
-          ls -la ~/.ssh
+          ls -la ~/
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
