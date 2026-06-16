@@ -20,15 +20,25 @@ ssh master@74.241.251.80
 ## Services
 
 ### Portainer
+Access the GUI via https://10.0.0.4:9443/  
+master | MkCeYNx59Cmb#SyWYh!8
 
 ### phpMyAdmin
+Access the GUI via http://10.0.0.4:8080/  
+No username | pass
 
 ### RedisInsight
+Access the GUI via 
+
 
 ### WG Admin
 Access the GUI via http://10.0.0.4:51821/  
 No username | pass
 
 ### Nginx Proxy Manager
-Access the GUI via http://10.0.0.4:81/
+Access the GUI via http://10.0.0.4:81/  
 dgkovachev@gmail.com | tjAuO7#&vZv4^v#TWpf*
+
+### Webmin
+Access the GUI via https://10.0.0.4:10000/  
+master | MkCeYNx59Cmb#SyWYh!8
