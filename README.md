@@ -21,7 +21,7 @@ ssh master@74.241.251.80
 
 ### Portainer
 Access the GUI via https://10.0.0.4:9443/  
-U: master
+U: master  
 P: MkCeYNx59Cmb#SyWYh!8
 
 ### phpMyAdmin
@@ -38,10 +38,10 @@ No username / pass
 
 ### Nginx Proxy Manager
 Access the GUI via http://10.0.0.4:81/  
-U: dgkovachev@gmail.com
+U: dgkovachev@gmail.com  
 P: tjAuO7#&vZv4^v#TWpf*
 
 ### Webmin
 Access the GUI via https://10.0.0.4:10000/  
-U: master
+U: master  
 P: MkCeYNx59Cmb#SyWYh!8
