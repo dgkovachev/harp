@@ -29,8 +29,8 @@ Access the GUI via http://10.0.0.4:8080/
 No username / pass
 
 ### RedisInsight
-Access the GUI via 
-
+Access the GUI via http://10.0.0.4:5540/  
+No username / pass
 
 ### WG Admin
 Access the GUI via http://10.0.0.4:51821/  
