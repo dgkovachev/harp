@@ -25,7 +25,7 @@ U: master
 P: MkCeYNx59Cmb#SyWYh!8
 
 ### phpMyAdmin
-Access the GUI via http://10.0.0.4:8080/  
+Access the GUI via http://10.0.0.4:8306/  
 No username / pass
 
 ### RedisInsight

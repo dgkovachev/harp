@@ -40,11 +40,7 @@ jobs:
 
       - name: Setup SSH
         run: |
-          ls -la
-          pwd
-          echo "${{ secrets.DEPLOY_SSH_KEY }}"
           mkdir -p ~/.ssh/
-          ls -la ~/
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
@@ -52,18 +48,18 @@ jobs:
       - name: Ensure remote folder exists
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "ls -la"
+            "ls -la ~/Docker/fronted/html"
 
-      # - name: Deploy API with rsync
-      #   run: |
-      #     rsync -az --delete \
-      #       --exclude='.env' \
-      #       --exclude='tests' \
-      #       --exclude='.git' \
-      #       --exclude='.github' \
-      #       -e "ssh -p ${{ secrets.DEPLOY_PORT }}" \
-      #       ./ \
-      #       "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.API_DEPLOY_PATH }}/"
+      - name: Deploy API with rsync
+        run: |
+          rsync -azv --delete \
+            --exclude='.env' \
+            --exclude='tests' \
+            --exclude='.git' \
+            --exclude='.github' \
+            -e "ssh -p 22" \
+            ./ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/fronted/html"
 
       # - name: Fix permissions and warmup
       #   run: |
