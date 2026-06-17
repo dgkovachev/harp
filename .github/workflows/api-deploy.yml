@@ -50,22 +50,22 @@ jobs:
       #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
       #       "ls -la ~/Docker/frontend/html"
 
-      - name: Deploy API with rsync
-        run: |
-          ls -la ./
-          rsync -azv --delete --exclude='.env' --exclude='tests' --exclude='.git' --exclude='.github' --rsync-path="sudo rsync" ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
-
       # - name: Deploy API with rsync
       #   run: |
-      #     rsync -azv --delete \
-      #       --exclude='.env' \
-      #       --exclude='tests' \
-      #       --exclude='.git' \
-      #       --exclude='.github' \
-      #       -e "ssh -o StrictHostKeyChecking=no" \
-      #       --rsync-path="sudo rsync" \Preferences: Open User Settings
-      #       ./ \
-      #       "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
+      #     ls -la ./
+      #     rsync -azv --delete --exclude='.env' --exclude='tests' --exclude='.git' --exclude='.github' --rsync-path="sudo rsync" ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
+
+      - name: Deploy API with rsync
+        run: |
+          rsync -azv --delete \
+            --exclude='.env' \
+            --exclude='tests' \
+            --exclude='.git' \
+            --exclude='.github' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --rsync-path="sudo rsync" \
+            ./ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
 
       # - name: Fix permissions and warmup
       #   run: |
