@@ -61,7 +61,7 @@ jobs:
             -e "ssh -o StrictHostKeyChecking=no" \
             --rsync-path="sudo rsync" \
             ./ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
 
       # - name: Fix permissions and warmup
       #   run: |
