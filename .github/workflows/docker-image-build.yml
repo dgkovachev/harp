@@ -1,4 +1,4 @@
-name: Build custom PHP image
+name: Build Docker Image
 
 on:
   push:
