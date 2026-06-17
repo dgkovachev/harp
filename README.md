@@ -45,3 +45,8 @@ P: tjAuO7#&vZv4^v#TWpf*
 Access the GUI via https://10.0.0.4:10000/  
 U: master  
 P: MkCeYNx59Cmb#SyWYh!8
+
+## Public URLs
+
+- https://harp.smartech.bg/  
+- https://harp.smartech.bg/api
