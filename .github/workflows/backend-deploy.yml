@@ -8,7 +8,7 @@ on:
       - '.github/workflows/backend-deploy.yml'
 
 jobs:
-  deploy-api:
+  deploy-backend:
     runs-on: ubuntu-latest
 
     defaults:

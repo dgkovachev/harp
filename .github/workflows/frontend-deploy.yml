@@ -8,7 +8,7 @@ on:
       - '.github/workflows/frontend-deploy.yml'
 
 jobs:
-  deploy-api:
+  deploy-frontend:
     runs-on: ubuntu-latest
 
     defaults:
