@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+use Slim\App;
+
+return function (App $app): void {
+    require __DIR__ . '/../src/routes/auth.php';
+    require __DIR__ . '/../src/routes/events.php';
+    require __DIR__ . '/../src/routes/registrations.php';
+};

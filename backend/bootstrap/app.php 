@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+use Slim\Factory\AppFactory;
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->safeLoad();
+
+$app = AppFactory::create();
+$app->addBodyParsingMiddleware();
+$app->addRoutingMiddleware();
+$app->addErrorMiddleware(true, true, true);
+
+(require __DIR__ . '/routes.php')($app);
+
+return $app;

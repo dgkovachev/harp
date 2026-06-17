@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Queue;
+
+use App\Domain\Notification\DomainEvent;
+use Predis\Client as PredisClient;
+
+final class RedisStreamPublisher
+{
+    public function __construct(private PredisClient $redis)
+    {
+    }
+
+    public function publish(DomainEvent $event): void
+    {
+        $this->redis->xadd('school-events', '*', [
+            'payload' => json_encode($event->toArray(), JSON_UNESCAPED_SLASHES),
+        ]);
+    }
+}
