@@ -42,8 +42,9 @@ jobs:
         run: |
           ls -la
           pwd
-          ls -la ~/
+          echo "${{ secrets.DEPLOY_SSH_KEY }}"
           mkdir -p ~/.ssh/
+          ls -la ~/
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
