@@ -44,11 +44,12 @@ jobs:
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+          ls -la ./
 
-      - name: Ensure remote folder exists
-        run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "ls -la ~/Docker/frontend/html"
+      # - name: Ensure remote folder exists
+      #   run: |
+      #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+      #       "ls -la ~/Docker/frontend/html"
 
       - name: Deploy API with rsync
         run: |
@@ -57,7 +58,8 @@ jobs:
             --exclude='tests' \
             --exclude='.git' \
             --exclude='.github' \
-            -e "ssh -p 22" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --rsync-path="sudo rsync" \
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
 
