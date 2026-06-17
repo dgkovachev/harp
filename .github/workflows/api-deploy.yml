@@ -44,7 +44,6 @@ jobs:
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
-          ls -la ./
 
       # - name: Ensure remote folder exists
       #   run: |
@@ -53,15 +52,20 @@ jobs:
 
       - name: Deploy API with rsync
         run: |
-          rsync -azv --delete \
-            --exclude='.env' \
-            --exclude='tests' \
-            --exclude='.git' \
-            --exclude='.github' \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            --rsync-path="sudo rsync" \
-            ./ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
+          ls -la ./
+          rsync -azv --delete --exclude='.env' --exclude='tests' --exclude='.git' --exclude='.github' -e "ssh -o StrictHostKeyChecking=no" --rsync-path="sudo rsync" ./ "${{ secrets.DEPLOY_USER }}"@"${{ secrets.DEPLOY_HOST }}"":/home/master/Docker/frontend/html
+
+      # - name: Deploy API with rsync
+      #   run: |
+      #     rsync -azv --delete \
+      #       --exclude='.env' \
+      #       --exclude='tests' \
+      #       --exclude='.git' \
+      #       --exclude='.github' \
+      #       -e "ssh -o StrictHostKeyChecking=no" \
+      #       --rsync-path="sudo rsync" \
+      #       ./ \
+      #       "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
 
       # - name: Fix permissions and warmup
       #   run: |
