@@ -1,6 +1,6 @@
 
 
-name: Build and push custom PHP image
+name: Build custom PHP image
 
 on:
   push:
@@ -53,8 +53,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          context: .docker
-          file: ./Dockerfile
+          context: .
+          file: ./.docker/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
