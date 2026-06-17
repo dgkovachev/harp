@@ -53,7 +53,7 @@ jobs:
       - name: Deploy API with rsync
         run: |
           ls -la ./
-          rsync -azv --delete --exclude='.env' --exclude='tests' --exclude='.git' --exclude='.github' -e "ssh -o StrictHostKeyChecking=no" --rsync-path="sudo rsync" ./ "${{ secrets.DEPLOY_USER }}"@"${{ secrets.DEPLOY_HOST }}"":/home/master/Docker/frontend/html
+          rsync -azv --delete --exclude='.env' --exclude='tests' --exclude='.git' --exclude='.github' --rsync-path="sudo rsync" ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
 
       # - name: Deploy API with rsync
       #   run: |
@@ -63,7 +63,7 @@ jobs:
       #       --exclude='.git' \
       #       --exclude='.github' \
       #       -e "ssh -o StrictHostKeyChecking=no" \
-      #       --rsync-path="sudo rsync" \
+      #       --rsync-path="sudo rsync" \Preferences: Open User Settings
       #       ./ \
       #       "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/home/master/Docker/frontend/html"
 
