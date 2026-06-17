@@ -48,7 +48,7 @@ jobs:
       - name: Ensure remote folder exists
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "ls -la ~/Docker/fronted/html"
+            "ls -la ~/Docker/frontend/html"
 
       - name: Deploy API with rsync
         run: |
@@ -59,7 +59,7 @@ jobs:
             --exclude='.github' \
             -e "ssh -p 22" \
             ./ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/fronted/html"
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
 
       # - name: Fix permissions and warmup
       #   run: |
