@@ -59,7 +59,7 @@ jobs:
             --exclude='.github' \
             --rsync-path="sudo rsync" \
             ./ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/dist"
 
       # - name: Fix permissions and warmup
       #   run: |

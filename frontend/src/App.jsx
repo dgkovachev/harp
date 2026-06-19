@@ -30,7 +30,7 @@ export default function App() {
         </div>
 
         <header className="brand-copy">
-          <h1 id="auth-title">Harp</h1>
+          <h1 id="auth-title">Harpnigga</h1>
           <p>School events, in perfect harmony.</p>
         </header>
 
