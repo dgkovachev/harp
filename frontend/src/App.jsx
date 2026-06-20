@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import HelpPage from './HelpPage';
 
 const registrationRoles = [
   {
@@ -8,19 +9,87 @@ const registrationRoles = [
   },
   {
     id: 'organizer',
-    title: 'Organizer',
+    title: 'School Organizer',
     description: 'Create and manage school events.'
   }
 ];
 
+function NoteParticles() {
+  const configs = useMemo(() => [
+    { char: '♪', left: '4%',  size: '2rem',   duration: '16s', delay: '0s' },
+    { char: '♫', left: '12%', size: '2.6rem', duration: '22s', delay: '2s' },
+    { char: '♩', left: '22%', size: '1.6rem', duration: '14s', delay: '5s' },
+    { char: '♬', left: '32%', size: '2.2rem', duration: '20s', delay: '1s' },
+    { char: '♫', left: '42%', size: '1.8rem', duration: '18s', delay: '7s' },
+    { char: '♪', left: '50%', size: '2.4rem', duration: '24s', delay: '3s' },
+    { char: '♩', left: '58%', size: '1.5rem', duration: '15s', delay: '9s' },
+    { char: '♬', left: '66%', size: '2rem',   duration: '19s', delay: '4s' },
+    { char: '♫', left: '75%', size: '2.8rem', duration: '26s', delay: '0s' },
+    { char: '♪', left: '83%', size: '1.7rem', duration: '17s', delay: '6s' },
+    { char: '♩', left: '91%', size: '2.1rem', duration: '21s', delay: '8s' },
+    { char: '♬', left: '97%', size: '1.4rem', duration: '13s', delay: '2s' },
+    { char: '♫', left: '8%',  size: '3rem',   duration: '28s', delay: '10s' },
+    { char: '♪', left: '28%', size: '2.3rem', duration: '23s', delay: '4s' },
+    { char: '♩', left: '48%', size: '1.9rem', duration: '16s', delay: '1s' },
+    { char: '♬', left: '62%', size: '2.5rem', duration: '25s', delay: '6s' },
+    { char: '♫', left: '72%', size: '1.6rem', duration: '14s', delay: '3s' },
+    { char: '♪', left: '88%', size: '2.2rem', duration: '20s', delay: '9s' },
+    { char: '♩', left: '16%', size: '2.7rem', duration: '27s', delay: '0s' },
+    { char: '♬', left: '38%', size: '1.3rem', duration: '12s', delay: '7s' },
+  ], []);
+
+  return (
+    <>
+      {configs.map((c, i) => (
+        <span
+          key={i}
+          className="note-particle"
+          aria-hidden="true"
+          style={{
+            left: c.left,
+            bottom: '-3rem',
+            fontSize: c.size,
+            animationDuration: c.duration,
+            animationDelay: c.delay,
+          }}
+        >
+          {c.char}
+        </span>
+      ))}
+    </>
+  );
+}
+
 export default function App() {
   const [mode, setMode] = useState('sign-in');
   const [role, setRole] = useState('student');
+  const [page, setPage] = useState('auth');
+  const [theme, setTheme] = useState(() => localStorage.getItem('harp-theme') || 'light');
 
   const isRegister = mode === 'register';
 
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('harp-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+
+  if (page === 'help') {
+    return <HelpPage onBack={() => setPage('auth')} theme={theme} onToggleTheme={toggleTheme} />;
+  }
+
   return (
     <main className="auth-page">
+      <NoteParticles />
+      <button
+        type="button"
+        className="theme-toggle"
+        onClick={toggleTheme}
+        aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+      >
+        {theme === 'light' ? '☾' : '☀'}
+      </button>
       <div className="auth-glow auth-glow-left" aria-hidden="true" />
       <div className="auth-glow auth-glow-right" aria-hidden="true" />
 
@@ -30,7 +99,7 @@ export default function App() {
         </div>
 
         <header className="brand-copy">
-          <h1 id="auth-title">Harp login</h1>
+          <h1 id="auth-title">Harp</h1>
           <p>School events, in perfect harmony.</p>
         </header>
 
@@ -80,6 +149,11 @@ export default function App() {
                 </label>
 
                 <label>
+                  School Code
+                  <input type="text" placeholder="e.g. HARP-2024" autoComplete="off" />
+                </label>
+
+                <label>
                   Grade / Year
                   <input type="text" placeholder="e.g. 10th grade, Junior" />
                 </label>
@@ -112,16 +186,25 @@ export default function App() {
             </button>
           </form>
 
-          <button
-            type="button"
-            className="auth-link"
-            onClick={() => setMode(isRegister ? 'sign-in' : 'register')}
-          >
-            {isRegister ? 'Already have an account? Sign in' : 'New to Harp? Create an account'}
-          </button>
+          <div className="auth-footer">
+            <button
+              type="button"
+              className="auth-link"
+              onClick={() => setMode(isRegister ? 'sign-in' : 'register')}
+            >
+              {isRegister ? 'Already have an account? Sign in' : 'New to Harp? Create an account'}
+            </button>
+            <button
+              type="button"
+              className="auth-link help-link"
+              onClick={() => setPage('help')}
+            >
+              ?
+            </button>
+          </div>
         </section>
 
-              <p className="connection-note">Connected to <code>harp</code></p>
+        <p className="connection-note">Connected to <code>harp</code></p>
       </section>
     </main>
   );
