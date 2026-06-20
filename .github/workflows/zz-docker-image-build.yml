@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - '.docker/**'
-      - '.github/workflows/docker-image-build.yml'
+      - '.github/workflows/zz-docker-image-build.yml'
 
 env:
   REGISTRY: ghcr.io
