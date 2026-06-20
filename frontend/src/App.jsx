@@ -99,7 +99,7 @@ export default function App() {
         </div>
 
         <header className="brand-copy">
-          <h1 id="auth-title">HARP</h1>
+          <h1 id="auth-title">Welcome to HARP</h1>
           <p>School events, in perfect harmony.</p>
         </header>
 
