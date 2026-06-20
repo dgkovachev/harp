@@ -1,0 +1,73 @@
+name: Deploy Worker
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'worker/**'
+      - '.github/workflows/worker-deploy.yml'
+
+jobs:
+  deploy-worker:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: worker
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # - name: Debug repo structure
+      #   run: |
+      #     pwd
+      #     ls -la
+      #     find . -maxdepth 2 -type d | sort
+
+      # - name: Setup PHP
+      #   uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: '8.2'
+      #     extensions: mbstring, pdo_mysql, redis
+      #     coverage: none
+
+      # - name: Validate composer
+      #   run: composer validate --no-check-publish
+
+      # - name: Install dependencies
+      #   run: composer install --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      # - name: Ensure remote folder exists
+      #   run: |
+      #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+      #       "ls -la ~/Docker/worker/html"
+
+      - name: Deploy API with rsync
+        run: |
+          rsync -azv --delete \
+            --exclude='.env' \
+            --exclude='tests' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --rsync-path="sudo rsync" \
+            ./ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/worker/html"
+
+      # - name: Fix permissions and warmup
+      #   run: |
+      #     ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+      #       cd "${{ secrets.API_DEPLOY_PATH }}"
+      #       mkdir -p storage/logs
+      #       find storage -type d -exec chmod 775 {} \;
+      #       find storage -type f -exec chmod 664 {} \;
+      #     EOF
+
+
