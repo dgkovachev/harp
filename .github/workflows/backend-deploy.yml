@@ -25,18 +25,15 @@ jobs:
       #     ls -la
       #     find . -maxdepth 2 -type d | sort
 
-      # - name: Setup PHP
-      #   uses: shivammathur/setup-php@v2
-      #   with:
-      #     php-version: '8.2'
-      #     extensions: mbstring, pdo_mysql, redis
-      #     coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, redis
+          coverage: none
 
-      # - name: Validate composer
-      #   run: composer validate --no-check-publish
-
-      # - name: Install dependencies
-      #   run: composer install --no-dev --prefer-dist --optimize-autoloader
+      - name: Install dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader
 
       - name: Setup SSH
         run: |
@@ -78,19 +75,9 @@ jobs:
           ENVFILE
           EOF
 
-      - name: Install composer dependencies on server
+      - name: Restart backend container
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-          cd ~/Docker/backend/dist
-          EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')"
-          php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-          ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
-          if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then >&2 echo 'ERROR: Invalid installer checksum'; rm composer-setup.php; exit 1; fi
-          php composer-setup.php --quiet
-          rm composer-setup.php
-          php composer.phar install --no-dev --prefer-dist --optimize-autoloader
-          rm composer.phar
-          EOF
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "cd ~/Docker && docker compose restart backend || docker compose up -d backend"
 
           
       # - name: Fix permissions and warmup
