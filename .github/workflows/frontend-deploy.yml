@@ -83,7 +83,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
             docker compose pull
             docker compose up -d
-            docker image ls -qf "dangling=true" | xargs docker rmi || true"
+            docker image ls -qf "dangling=true" | xargs docker rmi || true
 
 ### OLD
 # jobs:
