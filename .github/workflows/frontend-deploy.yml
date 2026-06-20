@@ -13,7 +13,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}-frontend
 
 jobs:
-  build:
+  deploy-frontend:
     runs-on: ubuntu-latest
 
     defaults:
@@ -28,23 +28,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build app
         run: npm run build
 
-      - name: Debug repo structure
-        run: |
-          pwd
-          ls -la
-          ls -la dist
+      # - name: Debug repo structure
+      #   run: |
+      #     pwd
+      #     ls -la
+      #     ls -la dist
 
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+
+      - name: Deploy API with rsync
+        run: |
+          rsync -azv --delete \
+            --exclude='.env' \
+            --exclude='tests' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --rsync-path="sudo rsync" \
+            dist/ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
+
+
+### Old Docker deployment method (commented out)
       # - name: Log in to GHCR
       #   uses: docker/login-action@v4
       #   with:
@@ -84,54 +106,11 @@ jobs:
       #     chmod 600 ~/.ssh/id_rsa
       #     ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      # - name: Deploy API with rsync
+      # - name: Deploy API over SSH
       #   run: |
-      #     ssh -o StrictHostKeyChecking=no "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+      #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
       #       docker compose pull
       #       docker compose up -d
       #       docker image ls -qf "dangling=true" | xargs docker rmi || true
 
-### OLD
-# jobs:
-#   deploy-frontend:
-#     runs-on: ubuntu-latest
-
-#     defaults:
-#       run:
-#         working-directory: frontend
-
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: Setup Node
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
-#           cache: npm
-
-#       - name: Install dependencies
-#         run: npm ci
-
-#       - name: Build app
-#         run: npm run build
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
-
-
-      - name: Deploy API with rsync
-        run: |
-          rsync -azv --delete \
-            --exclude='.env' \
-            --exclude='tests' \
-            --exclude='.git' \
-            --exclude='.github' \
-            --rsync-path="sudo rsync" \
-            dist/ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
 
