@@ -50,3 +50,32 @@ P: MkCeYNx59Cmb#SyWYh!8
 
 - https://harp.smartech.bg/  
 - https://harp.smartech.bg/api
+
+## Connections
+
+### Local development
+WireGuard is required!
+
+MySQL Server:
+- Host: 10.0.0.4
+- Port: 3306
+- Database: harp
+- User: harp
+- Pass: Zjf0!zqhQunFsfKK7U5r
+
+Redis Server:
+- Host: 10.0.0.4
+- Port: 6379
+
+### Production
+
+MySQL Server:
+- Host: mysql
+- Port: 3306
+- Database: harp
+- User: harp
+- Pass: Zjf0!zqhQunFsfKK7U5r
+
+Redis Server:
+- Host: redis
+- Port: 6379
