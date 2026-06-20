@@ -31,7 +31,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install dependencies
         run: npm ci
@@ -116,22 +116,22 @@ jobs:
 #       - name: Build app
 #         run: npm run build
 
-#       - name: Setup SSH
-#         run: |
-#           mkdir -p ~/.ssh/
-#           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-#           chmod 600 ~/.ssh/id_rsa
-#           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
 
-#       - name: Deploy API with rsync
-#         run: |
-#           rsync -azv --delete \
-#             --exclude='.env' \
-#             --exclude='tests' \
-#             --exclude='.git' \
-#             --exclude='.github' \
-#             --rsync-path="sudo rsync" \
-#             dist/ \
-#             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/dist"
+      - name: Deploy API with rsync
+        run: |
+          rsync -azv --delete \
+            --exclude='.env' \
+            --exclude='tests' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --rsync-path="sudo rsync" \
+            dist/ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
 
