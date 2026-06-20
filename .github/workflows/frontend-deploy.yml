@@ -81,7 +81,7 @@ jobs:
       - name: Deploy API with rsync
         run: |
           ssh -o StrictHostKeyChecking=no "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-            docker compose pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            docker compose pull ${{ env.IMAGE_NAME }}
             docker compose up -d
             docker image ls -q "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" | head -n 1 | xargs docker rmi -f
 
