@@ -63,6 +63,10 @@ jobs:
 
 
 
+      - name: Fix ownership after sudo rsync
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/backend/dist"
+
       - name: Create .env on server
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
@@ -73,7 +77,6 @@ jobs:
           DB_NAME=${{ secrets.DB_NAME }}
           ENVFILE
           EOF
-
 
       - name: Install composer dependencies on server
         run: |
