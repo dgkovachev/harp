@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import HelpPage from './HelpPage';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const registrationRoles = [
   {
     id: 'student',
@@ -16,19 +18,19 @@ const registrationRoles = [
 
 function NoteParticles() {
   const configs = useMemo(() => [
-    { char: '♪', left: '4%',  size: '2rem',   duration: '16s', delay: '0s' },
+    { char: '♪', left: '4%', size: '2rem', duration: '16s', delay: '0s' },
     { char: '♫', left: '12%', size: '2.6rem', duration: '22s', delay: '2s' },
     { char: '♩', left: '22%', size: '1.6rem', duration: '14s', delay: '5s' },
     { char: '♬', left: '32%', size: '2.2rem', duration: '20s', delay: '1s' },
     { char: '♫', left: '42%', size: '1.8rem', duration: '18s', delay: '7s' },
     { char: '♪', left: '50%', size: '2.4rem', duration: '24s', delay: '3s' },
     { char: '♩', left: '58%', size: '1.5rem', duration: '15s', delay: '9s' },
-    { char: '♬', left: '66%', size: '2rem',   duration: '19s', delay: '4s' },
+    { char: '♬', left: '66%', size: '2rem', duration: '19s', delay: '4s' },
     { char: '♫', left: '75%', size: '2.8rem', duration: '26s', delay: '0s' },
     { char: '♪', left: '83%', size: '1.7rem', duration: '17s', delay: '6s' },
     { char: '♩', left: '91%', size: '2.1rem', duration: '21s', delay: '8s' },
     { char: '♬', left: '97%', size: '1.4rem', duration: '13s', delay: '2s' },
-    { char: '♫', left: '8%',  size: '3rem',   duration: '28s', delay: '10s' },
+    { char: '♫', left: '8%', size: '3rem', duration: '28s', delay: '10s' },
     { char: '♪', left: '28%', size: '2.3rem', duration: '23s', delay: '4s' },
     { char: '♩', left: '48%', size: '1.9rem', duration: '16s', delay: '1s' },
     { char: '♬', left: '62%', size: '2.5rem', duration: '25s', delay: '6s' },
@@ -61,6 +63,39 @@ function NoteParticles() {
 }
 
 export default function App() {
+
+  useEffect(() => {
+window.createUser = async (email, name, password) => {
+  const res = await fetch(`${API_URL}/src/auth.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_email: email, display_name: name, password })
+  });
+  return res.json();
+};
+
+// Get user
+window.getUser = async (id) => {
+  const res = await fetch(`${API_URL}/src/auth.php?id=${id}`);
+  return res.json();
+};
+
+// Delete user
+window.deleteUser = async (id) => {
+  const res = await fetch(`${API_URL}/src/auth.php`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: id })
+  });
+  return res.json();
+};
+  }, []);
+
+
+
+
+
+
   const [mode, setMode] = useState('sign-in');
   const [role, setRole] = useState('student');
   const [page, setPage] = useState('auth');

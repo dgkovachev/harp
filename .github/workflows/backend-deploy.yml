@@ -59,8 +59,30 @@ jobs:
             --exclude='.github' \
             --rsync-path="sudo rsync" \
             ./ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/backend/html"
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/backend/dist"
 
+
+
+      - name: Create .env on server
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+          cat > ~/Docker/backend/dist/.env << 'ENVFILE'
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASS=${{ secrets.DB_PASS }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          ENVFILE
+          EOF
+
+
+      - name: Install composer dependencies on server
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+          cd ~/Docker/backend/dist
+          composer install --no-dev --prefer-dist --optimize-autoloader
+          EOF
+
+          
       # - name: Fix permissions and warmup
       #   run: |
       #     ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'

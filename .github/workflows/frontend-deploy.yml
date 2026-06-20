@@ -37,6 +37,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create .env.production
+        run: |
+          echo "VITE_API_URL=${{ secrets.API_URL }}" > .env.production
+
       - name: Build app
         run: npm run build
 
