@@ -48,8 +48,8 @@ P: MkCeYNx59Cmb#SyWYh!8
 
 ## Public URLs
 
-- https://harp.smartech.bg/  
-- https://harp.smartech.bg/api
+- https://harp.smartech.bg/ (frontend)
+- https://harpapi.smartech.bg/ (backend)
 
 ## Connections
 
