@@ -68,6 +68,10 @@ jobs:
             dist/ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
 
+      - name: Fix ownership after sudo rsync
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/frontend/html"
+
       - name: Create .env on server
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
@@ -75,6 +79,10 @@ jobs:
           VITE_API_URL=${{secrets.API_URL}}
           ENVFILE
           EOF
+
+      - name: Restart frontend container
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "cd ~/Docker && docker compose restart frontend || docker compose up -d frontend"
 
 
 ### Old Docker deployment method (commented out)
