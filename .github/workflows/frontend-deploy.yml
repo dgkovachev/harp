@@ -47,7 +47,7 @@ jobs:
       # - name: Debug repo structure
       #   run: |
       #     pwd
-      #     ls -la
+      #     ls -laa
       #     ls -la dist
 
       - name: Setup SSH

@@ -43,7 +43,7 @@ jobs:
             --exclude='tests' \
             --exclude='.git' \
             --exclude='.github' \
-            --rsync-path="sudo rsync" \
+            --rsync-path="sudo rsync" \a
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/worker/html"
 
