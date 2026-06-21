@@ -65,29 +65,48 @@ function NoteParticles() {
 export default function App() {
 
   useEffect(() => {
-window.createUser = async (email, name, password) => {
+const token = () => localStorage.getItem('harp_token');
+
+window.login = async (email, password) => {
+  const res = await fetch(`${API_URL}/index.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_email: email, password })
+  });
+  const data = await res.json();
+  if (data.token) localStorage.setItem('harp_token', data.token);
+  return data;
+};
+
+window.register = async (email, name, password) => {
   const res = await fetch(`${API_URL}/index.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_email: email, display_name: name, password })
   });
-  return res.json();
+  const data = await res.json();
+  if (data.token) localStorage.setItem('harp_token', data.token);
+  return data;
 };
 
-// Get user
 window.getUser = async (id) => {
-  const res = await fetch(`${API_URL}/index.php?id=${id}`);
+  const res = await fetch(`${API_URL}/index.php?id=${id}`, {
+    headers: { 'Authorization': `Bearer ${token()}` }
+  });
   return res.json();
 };
 
-// Delete user
 window.deleteUser = async (id) => {
   const res = await fetch(`${API_URL}/index.php`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` },
     body: JSON.stringify({ user_id: id })
   });
   return res.json();
+};
+
+window.logout = () => {
+  localStorage.removeItem('harp_token');
 };
   }, []);
 
