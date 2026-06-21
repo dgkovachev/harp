@@ -66,7 +66,7 @@ export default function App() {
 
   useEffect(() => {
 window.createUser = async (email, name, password) => {
-  const res = await fetch(`${API_URL}/src/auth.php`, {
+  const res = await fetch(`${API_URL}/index.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_email: email, display_name: name, password })
@@ -76,13 +76,13 @@ window.createUser = async (email, name, password) => {
 
 // Get user
 window.getUser = async (id) => {
-  const res = await fetch(`${API_URL}/src/auth.php?id=${id}`);
+  const res = await fetch(`${API_URL}/index.php?id=${id}`);
   return res.json();
 };
 
 // Delete user
 window.deleteUser = async (id) => {
-  const res = await fetch(`${API_URL}/src/auth.php`, {
+  const res = await fetch(`${API_URL}/index.php`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: id })
