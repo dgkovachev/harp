@@ -56,18 +56,18 @@ jobs:
             --exclude='.github' \
             --rsync-path="sudo rsync" \
             ./ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/backend/dist"
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/backend/html"
 
 
 
       - name: Fix ownership after sudo rsync
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/backend/dist"
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/backend/html"
 
       - name: Create .env on server
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-          cat > ~/Docker/backend/dist/.env << 'ENVFILE'
+          cat > ~/Docker/backend/html/.env << 'ENVFILE'
           DB_HOST=${{ secrets.DB_HOST }}
           DB_USER=${{ secrets.DB_USER }}
           DB_PASS=${{ secrets.DB_PASS }}
@@ -77,7 +77,7 @@ jobs:
 
       - name: Restart backend container
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "cd ~/Docker && docker compose restart backend || docker compose up -d backend"
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker compose restart backend"
 
           
       # - name: Fix permissions and warmup
