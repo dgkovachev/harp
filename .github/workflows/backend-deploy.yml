@@ -89,6 +89,6 @@ jobs:
       #       mkdir -p storage/logs
       #       find storage -type d -exec chmod 775 {} \;
       #       find storage -type f -exec chmod 664 {} \;
-      #     EOF
+      #     EOFa
 
 
