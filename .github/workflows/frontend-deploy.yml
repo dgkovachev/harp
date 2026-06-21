@@ -57,7 +57,6 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-
       - name: Deploy API with rsync
         run: |
           rsync -azv --delete \
@@ -68,6 +67,14 @@ jobs:
             --rsync-path="sudo rsync" \
             dist/ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/html"
+
+      - name: Create .env on server
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+          cat > ~/Docker/frontend/html/.env << 'ENVFILE'
+          VITE_API_URL=${{secrets.API_URL}}
+          ENVFILE
+          EOF
 
 
 ### Old Docker deployment method (commented out)
