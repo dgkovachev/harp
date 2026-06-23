@@ -1,5 +1,5 @@
 # Project Git Ignore - tailored for this repo (frontend + PHP backend)
-
+vendor
 # Node / frontend
 node_modules/
 .vite/

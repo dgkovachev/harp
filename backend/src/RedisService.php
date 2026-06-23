@@ -94,11 +94,10 @@ class RedisService
     public function pushNotification($type, $data)
     {
         if (!$this->client) return;
-        $job = json_encode([
+        $this->client->xadd('queue:notifications', [
             'type'       => $type,
-            'data'       => $data,
+            'data'       => json_encode($data),
             'created_at' => time()
-        ]);
-        $this->client->rpush('queue:notifications', [$job]);
+        ], '*');
     }
 }
