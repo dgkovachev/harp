@@ -3,24 +3,16 @@ namespace App;
 
 use Exception;
 
-class RedisService
+class RedisService extends Connect
 {
     private $client;
     private $sessionTtl = 86400;
     private $maxLoginAttempts = 5;
     private $loginBlockMinutes = 15;
 
-    public function __construct($host = '127.0.0.1', $port = 6379)
+    public function __construct()
     {
-        try {
-            $this->client = new \Predis\Client([
-                'scheme' => 'tcp',
-                'host' => $host,
-                'port' => $port,
-            ]);
-        } catch (Exception $e) {
-            $this->client = null;
-        }
+        $this->client = $this->redis;
     }
 
     public function isAvailable()

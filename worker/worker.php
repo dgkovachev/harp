@@ -14,8 +14,6 @@ echo "Worker started, waiting for jobs...\n";
 
 $streamName = 'queue:notifications';
 
-echo "Worker started, waiting for jobs...\n";
-
 while (true) {
     // Use the lesson's exact signature:
     // xread(count, block, [$streamName, startingId])
