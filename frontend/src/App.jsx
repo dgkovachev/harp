@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import HelpPage from './HelpPage';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 const registrationRoles = [
   {
@@ -68,7 +68,7 @@ export default function App() {
 const token = () => localStorage.getItem('harp_token');
 
 window.login = async (email, password) => {
-  const res = await fetch(`${API_URL}/index.php`, {
+  const res = await fetch(`${API_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_email: email, password })
@@ -79,7 +79,7 @@ window.login = async (email, password) => {
 };
 
 window.register = async (email, name, password) => {
-  const res = await fetch(`${API_URL}/index.php`, {
+  const res = await fetch(`${API_URL}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_email: email, display_name: name, password })
@@ -90,22 +90,25 @@ window.register = async (email, name, password) => {
 };
 
 window.getUser = async (id) => {
-  const res = await fetch(`${API_URL}/index.php?id=${id}`, {
+  const res = await fetch(`${API_URL}/users/${id}`, {
     headers: { 'Authorization': `Bearer ${token()}` }
   });
   return res.json();
 };
 
 window.deleteUser = async (id) => {
-  const res = await fetch(`${API_URL}/index.php`, {
+  const res = await fetch(`${API_URL}/users/${id}`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` },
-    body: JSON.stringify({ user_id: id })
+    headers: { 'Authorization': `Bearer ${token()}` }
   });
   return res.json();
 };
 
-window.logout = () => {
+window.logout = async () => {
+  await fetch(`${API_URL}/logout`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token()}` }
+  });
   localStorage.removeItem('harp_token');
 };
   }, []);
