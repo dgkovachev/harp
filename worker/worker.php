@@ -1,16 +1,15 @@
 <?php
 
-require_once __DIR__ . '/../backend/vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
-use Predis\Client;
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../backend');
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-$host = $_ENV['REDIS_HOST'] ?? getenv('REDIS_HOST') ?? '127.0.0.1';
+$host = $_ENV['REDIS_HOST'] ?? getenv('REDIS_HOST') ?? 'redis';
 $port = $_ENV['REDIS_PORT'] ?? getenv('REDIS_PORT') ?? 6379;
 
 try {
-    $redis = new Client(['scheme' => 'tcp', 'host' => $host, 'port' => $port]);
+    $redis = new Predis\Client(['scheme' => 'tcp', 'host' => $host, 'port' => $port]);
     echo "Worker started, waiting for jobs...\n";
 
     while (true) {
