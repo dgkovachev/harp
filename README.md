@@ -79,3 +79,10 @@ MySQL Server:
 Redis Server:
 - Host: redis
 - Port: 6379
+
+### SMTP Server
+- User: harp@smartech.bg
+- Pass: MOUsHarfeM,90,{
+- Server: mail.smartech.bg
+- Port: 587 (STARTTLS)
+- Port: 465 (TLS)
