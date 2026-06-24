@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Build Image Backend
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  docker:
+  build-image:
     runs-on: ubuntu-latest
 
     defaults:
