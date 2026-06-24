@@ -1,11 +1,11 @@
-name: Build Image Backend
+name: Image Build Worker
 
 on:
   push:
     branches: [ main ]
     paths:
       - '.docker/**'
-      - '.github/workflows/zz-backend-image-build.yml'
+      - '.github/workflows/zz-image-build-worker.yml'
 
 env:
   REGISTRY: ghcr.io
@@ -41,7 +41,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
@@ -52,7 +52,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./.docker/Dockerfile-backend
+          file: ./.docker/Dockerfile-worker
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
