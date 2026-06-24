@@ -54,7 +54,7 @@ jobs:
       - name: Create .env on server
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-          cat > ~/Docker/worker/html/.env << 'ENVFILE'
+          cat > ~/Docker/worker/.env << 'ENVFILE'
           REDIS_HOST=${{ secrets.REDIS_HOST }}
           REDIS_PORT=${{ secrets.REDIS_PORT }}
           ENVFILE
@@ -62,4 +62,4 @@ jobs:
 
       - name: Restart worker container
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "cd ~/Docker && docker compose restart worker || docker compose up -d worker"
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker restart worker && docker compose up -d worker"
