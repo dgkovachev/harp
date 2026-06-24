@@ -19,12 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # - name: Debug repo structure
-      #   run: |
-      #     pwd
-      #     ls -la
-      #     find . -maxdepth 2 -type d | sort
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -42,12 +36,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      # - name: Ensure remote folder exists
-      #   run: |
-      #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-      #       "ls -la ~/Docker/backend/html"
-
-      - name: Deploy API with rsync
+      - name: Deploy backend files
         run: |
           rsync -azv --delete \
             --exclude='.env' \
@@ -58,16 +47,14 @@ jobs:
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/backend/html"
 
-
-
-      - name: Fix ownership after sudo rsync
+      - name: Fix ownership file ownership
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/backend/html"
 
       - name: Create .env on server
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-          cat > ~/Docker/backend/html/.env << 'ENVFILE'
+          cat > ~/Docker/backend/.env << 'ENVFILE'
           DB_HOST=${{ secrets.DB_HOST }}
           DB_USER=${{ secrets.DB_USER }}
           DB_PASS=${{ secrets.DB_PASS }}
@@ -79,16 +66,4 @@ jobs:
 
       - name: Restart backend container
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker compose restart backend"
-
-          
-      # - name: Fix permissions and warmup
-      #   run: |
-      #     ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-      #       cd "${{ secrets.API_DEPLOY_PATH }}"
-      #       mkdir -p storage/logs
-      #       find storage -type d -exec chmod 775 {} \;
-      #       find storage -type f -exec chmod 664 {} \;
-      #     EOFa
-
-
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker restart backend && docker compose up -d backend"

@@ -47,7 +47,7 @@ jobs:
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/worker/html"
 
-      - name: Fix ownership
+      - name: Fix ownership file ownership
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/worker/html"
 
