@@ -6,5 +6,8 @@ RUN apt-get update && apt-get upgrade -y \
     && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/* /tmp/pear
 
+# Set working directory
+WORKDIR /var/www/html
+
 # Default command
 CMD ["php", "worker.php"]
