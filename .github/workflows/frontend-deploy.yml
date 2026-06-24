@@ -7,12 +7,6 @@ on:
       - 'frontend/**'
       - '.github/workflows/frontend-deploy.yml'
 
-#   workflow_dispatch:
-
-# env:
-#   REGISTRY: ghcr.io
-#   IMAGE_NAME: ${{ github.repository }}-frontend
-
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -20,10 +14,6 @@ jobs:
     defaults:
       run:
         working-directory: frontend
-
-    # permissions:
-    #   contents: read
-    #   packages: write
 
     steps:
       - name: Checkout
@@ -37,9 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create .env.production
-        run: |
-          echo "VITE_API_URL=${{ secrets.API_URL }}" > .env.production
+      # - name: Create .env.production
+      #   run: |
+      #     echo "VITE_API_URL=${{ secrets.API_URL }}" > .env.production
 
       - name: Build app
         run: npm run build
@@ -53,7 +43,7 @@ jobs:
 
       - name: Deploy frontend files
         run: |
-          rsync -azv --delete \
+          rsync -azv --delete --ignore-existing \
             --exclude='.env' \
             --exclude='tests' \
             --exclude='.git' \
@@ -81,7 +71,15 @@ jobs:
 
 ### Old Docker deployment method (commented out)
 
+#   workflow_dispatch:
 
+# env:
+#   REGISTRY: ghcr.io
+#   IMAGE_NAME: ${{ github.repository }}-frontend
+
+    # permissions:
+    #   contents: read
+    #   packages: write
 
       # - name: Log in to GHCR
       #   uses: docker/login-action@v4

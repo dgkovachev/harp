@@ -38,7 +38,7 @@ jobs:
 
       - name: Deploy worker files
         run: |
-          rsync -azv --delete \
+          rsync -azv --delete --ignore-existing \
             --exclude='.env' \
             --exclude='tests' \
             --exclude='.git' \
@@ -47,7 +47,7 @@ jobs:
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/worker/html"
 
-      - name: Fix ownership file ownership
+      - name: Fix file ownership
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/worker/html"
 

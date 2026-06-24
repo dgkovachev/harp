@@ -38,7 +38,7 @@ jobs:
 
       - name: Deploy backend files
         run: |
-          rsync -azv --delete \
+          rsync -azv --delete --ignore-existing \
             --exclude='.env' \
             --exclude='tests' \
             --exclude='.git' \
