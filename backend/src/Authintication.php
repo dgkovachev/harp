@@ -1,4 +1,5 @@
 <?php
+
 namespace App;
 
 use PDO;
@@ -50,7 +51,26 @@ class Authintication extends Connect
             $this->HandleError($passErr, 400);
         }
 
-        $stmt = $this->pdo->prepare("INSERT INTO users (user_email, display_name, password_hash, grade, role, school_domain, is_verified, join_code, promoted_by, created_at) 
+        if ($this->isDomainBlocked($data['user_email'])) {
+            if (empty($data['join_code']) || !$this->isJoinCodeValid($data['join_code'])) {
+                $this->HandleError('This email requires a valid school join code', 400);
+                //MAKE THE FRONT END SHOWS A MESSAGE SAYING "This email requires a valid school join code" AND A HIGHLIGHT FOR THE PLACE TO ENTER THE JOIN CODE
+            }
+            $schoolId = $this->getSchoolFromJoinCode($data['join_code']);
+        } else {
+
+            $domain = substr(strrchr($data['user_email'], "@"), 1);
+            $schoolId = $this->getSchoolFromDomain($domain);
+            if (!$schoolId) {
+                if (!empty($data['join_code']) && $this->isJoinCodeValid($data['join_code'])) {
+                    $schoolId = $this->getSchoolFromJoinCode($data['join_code']);
+                } else {
+                    $this->HandleError('This email domain is not associated with any school', 400);
+                }
+            }
+        }
+
+        $stmt = $this->pdo->prepare("INSERT INTO users (user_email, display_name, password_hash, grade, role, school_id, is_verified, join_code, promoted_by, created_at) 
                                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
         $stmt->execute([
             $data['user_email'],
@@ -58,7 +78,7 @@ class Authintication extends Connect
             $this->hashPassword($data['password']),
             $data['grade'] ?? 0,
             $data['role'] ?? 'student',
-            $data['school_domain'] ?? '',
+            $schoolId ?? null,
             $data['is_verified'] ?? 0,
             $data['join_code'] ?? '',
             $data['promoted_by'] ?? null
@@ -86,7 +106,7 @@ class Authintication extends Connect
         $this->requireAuth();
 
         $id = $params['id'] ?? 0;
-        $stmt = $this->pdo->prepare("SELECT user_id, user_email, display_name, grade, role, school_domain, is_verified, created_at FROM users WHERE user_id = ?");
+        $stmt = $this->pdo->prepare("SELECT user_id, user_email, display_name, grade, role, school_id, is_verified, created_at FROM users WHERE user_id = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -114,14 +134,14 @@ class Authintication extends Connect
             $data['password_hash'] = $this->hashPassword($data['password']);
         }
 
-        $stmt = $this->pdo->prepare("UPDATE users SET user_email = COALESCE(?, user_email), display_name = COALESCE(?, display_name), password_hash = COALESCE(?, password_hash), grade = COALESCE(?, grade), role = COALESCE(?, role), school_domain = COALESCE(?, school_domain), is_verified = COALESCE(?, is_verified), promoted_by = COALESCE(?, promoted_by) WHERE user_id = ?");
+        $stmt = $this->pdo->prepare("UPDATE users SET user_email = COALESCE(?, user_email), display_name = COALESCE(?, display_name), password_hash = COALESCE(?, password_hash), grade = COALESCE(?, grade), role = COALESCE(?, role), school_id = COALESCE(?, school_id), is_verified = COALESCE(?, is_verified), promoted_by = COALESCE(?, promoted_by) WHERE user_id = ?");
         $stmt->execute([
             $data['user_email'] ?? null,
             $data['display_name'] ?? null,
             $data['password_hash'] ?? null,
             $data['grade'] ?? null,
             $data['role'] ?? null,
-            $data['school_domain'] ?? null,
+            $data['school_id'] ?? null,
             isset($data['is_verified']) ? (int)$data['is_verified'] : null,
             $data['promoted_by'] ?? null,
             $params['id']
@@ -162,6 +182,61 @@ class Authintication extends Connect
             return password_hash($password, PASSWORD_ARGON2ID);
         }
         return password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+    }
+
+    public function checkDomain($params)
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $domain = $data['domain'] ?? '';
+        if (!$domain) {
+            $this->HandleError('Domain parameter is required', 400);
+        }
+
+        $stmt = $this->pdo->prepare("SELECT 1 FROM blocked_domains WHERE domain = ?");
+        $stmt->execute([$domain]);
+        if ($stmt->fetchColumn()) {
+            echo json_encode(['blocked' => true, 'reason' => 'blocked']);
+            return;
+        }
+
+        $stmt = $this->pdo->prepare("SELECT school_id FROM schools WHERE school_domain = ?");
+        $stmt->execute([$domain]);
+        $schoolId = $stmt->fetchColumn();
+        if ($schoolId) {
+            echo json_encode(['blocked' => false, 'reason' => 'ok', 'school_id' => $schoolId]);
+            return;
+        }
+
+        echo json_encode(['blocked' => true, 'reason' => 'not_found']);
+    }
+
+    private function isJoinCodeValid($joinCode)
+    {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM schools WHERE join_code = ?");
+        $stmt->execute([$joinCode]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    private function getSchoolFromJoinCode($joinCode)
+    {
+        $stmt = $this->pdo->prepare("SELECT school_id FROM schools WHERE join_code = ?");
+        $stmt->execute([$joinCode]);
+        return $stmt->fetchColumn();
+    }
+
+    private function isDomainBlocked($email)
+    {
+        $domain = substr(strrchr($email, "@"), 1);
+        $stmt = $this->pdo->prepare("SELECT 1 FROM blocked_domains WHERE domain = ?");
+        $stmt->execute([$domain]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    private function getSchoolFromDomain($domain)
+    {
+        $stmt = $this->pdo->prepare("SELECT school_id FROM schools WHERE school_domain = ?");
+        $stmt->execute([$domain]);
+        return $stmt->fetchColumn();
     }
 
     private function validateEmail($email)

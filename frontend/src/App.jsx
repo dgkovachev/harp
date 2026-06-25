@@ -11,7 +11,7 @@ const registrationRoles = [
   },
   {
     id: 'organizer',
-    title: 'School Organizer',
+    title: 'Club Leader',
     description: 'Create and manage school events.'
   }
 ];
@@ -78,15 +78,35 @@ window.login = async (email, password) => {
   return data;
 };
 
-window.register = async (email, name, password) => {
-  const res = await fetch(`${API_URL}/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_email: email, display_name: name, password })
-  });
-  const data = await res.json();
-  if (data.token) localStorage.setItem('harp_token', data.token);
-  return data;
+window.register = async (email, name, password, joinCode) => {
+  try {
+    const body = { user_email: email, display_name: name, password };
+    if (joinCode) body.join_code = joinCode;
+    const res = await fetch(`${API_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.token) localStorage.setItem('harp_token', data.token);
+    return data;
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
+};
+
+window.checkDomain = async (domain) => {
+  try {
+    const res = await fetch(`${API_URL}/check-domain/${encodeURIComponent(domain)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain })
+    });
+    const data = await res.json();
+    return data;
+  } catch {
+    return { blocked: false };
+  }
 };
 
 window.getUser = async (id) => {
@@ -113,15 +133,18 @@ window.logout = async () => {
 };
   }, []);
 
-
-
-
-
-
   const [mode, setMode] = useState('sign-in');
   const [role, setRole] = useState('student');
   const [page, setPage] = useState('auth');
   const [theme, setTheme] = useState(() => localStorage.getItem('harp-theme') || 'light');
+
+  const [email, setEmail] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [domainStatus, setDomainStatus] = useState(null);
+  const [emailMessage, setEmailMessage] = useState('');
+  const [joinCodeError, setJoinCodeError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const isRegister = mode === 'register';
 
@@ -129,6 +152,34 @@ window.logout = async () => {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem('harp-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const atIndex = email.indexOf('@');
+    if (atIndex > -1 && email.slice(atIndex + 1).includes('.')) {
+      const domain = email.slice(atIndex + 1);
+      const timer = setTimeout(() => {
+        window.checkDomain(domain).then(data => {
+          if (data.blocked) {
+            setDomainStatus(data.reason);
+            setEmailMessage(data.reason === 'blocked'
+              ? 'This email requires a school join code'
+              : 'This email domain is not associated with any school');
+          } else {
+            setDomainStatus('ok');
+            setEmailMessage('');
+            setJoinCode('');
+            setJoinCodeError('');
+          }
+        });
+      }, 400);
+      return () => clearTimeout(timer);
+    } else {
+      setDomainStatus(null);
+      setEmailMessage('');
+      setJoinCode('');
+      setJoinCodeError('');
+    }
+  }, [email]);
 
   const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
 
@@ -184,35 +235,77 @@ window.logout = async () => {
 
           <form
             className="auth-form"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.preventDefault();
+              setFormError('');
+              setSuccessMessage('');
+              setJoinCodeError('');
+              const form = event.target;
+              const username = form.username.value;
+              const password = form.password.value;
+              const grade = form.grade?.value;
+
+              if (isRegister) {
+                const result = await window.register(email, username, password, joinCode);
+                if (!result.success) {
+                  if (result.error) {
+                    setFormError(result.error);
+                  }
+                } else {
+                  setSuccessMessage('Account created! Check your email to verify.');
+                }
+              } else {
+                const result = await window.login(email, password);
+                if (!result.success && result.error) {
+                  setFormError(result.error);
+                }
+              }
             }}
           >
             <label>
               Username
-              <input type="text" placeholder="e.g. ada.lovelace" autoComplete="username" />
+              <input type="text" name="username" placeholder="e.g. ada.lovelace" autoComplete="username" />
             </label>
 
             <label>
               Password
-              <input type="password" placeholder="••••••••" autoComplete={isRegister ? 'new-password' : 'current-password'} />
+              <input type="password" name="password" placeholder="••••••••" autoComplete={isRegister ? 'new-password' : 'current-password'} />
             </label>
 
             {isRegister ? (
               <>
                 <label>
                   School Email
-                  <input type="email" placeholder="you@school.edu" autoComplete="email" />
+                  <input
+                    type="email"
+                    placeholder="you@school.edu"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={domainStatus === 'blocked' || domainStatus === 'not_found' ? 'input-error' : ''}
+                  />
+                  {emailMessage && <span className="field-message">{emailMessage}</span>}
                 </label>
 
-                <label>
-                  School Code
-                  <input type="text" placeholder="e.g. HARP-2024" autoComplete="off" />
-                </label>
+                {(domainStatus === 'blocked' || domainStatus === 'not_found') && (
+                  <label>
+                    School Code
+                    <input
+                      type="text"
+                      placeholder="e.g. HARP-2024"
+                      autoComplete="off"
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value)}
+                      className={joinCodeError ? 'input-error' : ''}
+                      required
+                    />
+                    {joinCodeError && <span className="field-message">{joinCodeError}</span>}
+                  </label>
+                )}
 
                 <label>
                   Grade / Year
-                  <input type="text" placeholder="e.g. 10th grade, Junior" />
+                  <input type="text" name="grade" placeholder="e.g. 10th grade, Junior" />
                 </label>
 
                 <div className="role-picker" role="radiogroup" aria-label="Join as">
@@ -237,6 +330,9 @@ window.logout = async () => {
                 </div>
               </>
             ) : null}
+
+            {successMessage && <span className="field-message form-success">{successMessage}</span>}
+            {formError && <span className="field-message form-error">{formError}</span>}
 
             <button type="submit" className="primary-action">
               {isRegister ? 'Join Harp' : 'Sign In'}

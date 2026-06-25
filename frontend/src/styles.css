@@ -381,6 +381,55 @@ button {
   outline-offset: 2px;
 }
 
+.auth-form input.input-error {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+[data-theme="dark"] .auth-form input.input-error {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.field-message {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #e74c3c;
+  margin-top: -0.3rem;
+}
+
+.form-error {
+  text-align: center;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: rgba(231, 76, 60, 0.08);
+  border-radius: 6px;
+}
+
+.form-success {
+  text-align: center;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: rgba(46, 204, 113, 0.08);
+  border-radius: 6px;
+  color: #27ae60;
+}
+
+[data-theme="dark"] .form-error {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+[data-theme="dark"] .form-success {
+  background: rgba(46, 204, 113, 0.12);
+  color: #2ecc71;
+}
+
+[data-theme="dark"] .field-message {
+  color: #ff6b6b;
+}
+
 .section-label {
   margin: 0 0 0.3rem;
   color: var(--label-color);

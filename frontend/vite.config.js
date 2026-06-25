@@ -12,6 +12,13 @@ export default defineConfig({
     },
     watch: {
       usePolling: false
+    },
+    proxy: {
+      '/check-domain': { target: 'http://localhost:8000', changeOrigin: true },
+      '/login': { target: 'http://localhost:8000', changeOrigin: true },
+      '/register': { target: 'http://localhost:8000', changeOrigin: true },
+      '/logout': { target: 'http://localhost:8000', changeOrigin: true },
+      '/users': { target: 'http://localhost:8000', changeOrigin: true }
     }
   },
   build: {

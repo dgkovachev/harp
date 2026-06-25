@@ -39,5 +39,6 @@ $router->post('/logout', [$auth, 'logout']);
 $router->get('/users/{id}', [$auth, 'getUser']);
 $router->put('/users/{id}', [$auth, 'updateUser']);
 $router->delete('/users/{id}', [$auth, 'deleteUser']);
+$router->post('/check-domain/{domain}', [$auth, 'checkDomain']);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
