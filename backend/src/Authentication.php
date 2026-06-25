@@ -29,6 +29,11 @@ class Authentication extends Connect
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($data['password'] ?? '', $user['password_hash'])) {
+            
+            if (!$user['is_verified']) {
+                    $this->HandleError('Please verify your email before signing in', 403);
+             }
+
             $this->redis->clearLoginAttempts($data['user_email']);
             unset($user['password_hash'], $user['join_code'], $user['promoted_by'], $user['promoted_at']);
             $token = $this->redis->createSession($user);
