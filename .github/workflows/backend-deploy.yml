@@ -38,11 +38,12 @@ jobs:
 
       - name: Deploy backend files
         run: |
-          rsync -azv --delete --ignore-existing \
+          rsync -azv --delete \
             --exclude='.env' \
             --exclude='tests' \
             --exclude='.git' \
             --exclude='.github' \
+            --exclude='.gitignore' \
             --rsync-path="sudo rsync" \
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/backend/html"

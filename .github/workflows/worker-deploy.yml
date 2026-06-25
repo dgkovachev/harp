@@ -38,7 +38,7 @@ jobs:
 
       - name: Deploy worker files
         run: |
-          rsync -azv --delete --ignore-existing \
+          rsync -azv --delete \
             --exclude='.env' \
             --exclude='tests' \
             --exclude='.git' \
