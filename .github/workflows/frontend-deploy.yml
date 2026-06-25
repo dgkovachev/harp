@@ -27,12 +27,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Create .env.production
-      #   run: |
-      #     echo "VITE_API_URL=${{ secrets.API_URL }}" > .env.production
+      - name: Lint check
+        run: npx eslint src/ 2>&1 || echo 'Lint warnings (non-blocking)'
 
       - name: Build app
+        env:
+          VITE_API_URL: ${{ secrets.API_URL }}
         run: npm run build
+
+      - name: Verify API_URL in build
+        run: |
+          URL='${{ secrets.API_URL }}'
+          if [ -z "$URL" ]; then
+            echo 'WARNING: API_URL secret is empty — set it in GitHub repo secrets'
+          elif grep -q "$URL" dist/assets/*.js; then
+            echo 'API_URL baked in build OK'
+          else
+            echo 'WARNING: API_URL not found in build output'
+          fi
 
       - name: Setup SSH
         run: |
@@ -43,7 +55,7 @@ jobs:
 
       - name: Deploy frontend files
         run: |
-          rsync -azv --delete --ignore-existing \
+          rsync -azv --delete-delay \
             --exclude='.env' \
             --exclude='tests' \
             --exclude='.git' \
@@ -56,13 +68,6 @@ jobs:
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/frontend/html"
 
-      - name: Create .env on server
-        run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-          cat > ~/Docker/frontend/.env << 'ENVFILE'
-          VITE_API_URL=${{secrets.API_URL}}
-          ENVFILE
-          EOF
 
       - name: Restart frontend container
         run: |
