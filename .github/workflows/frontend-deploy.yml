@@ -31,7 +31,17 @@ jobs:
       #   run: |
       #     echo "VITE_API_URL=${{ secrets.API_URL }}" > .env.production
 
+      
+      - name: Create .env on server
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+          cat > ~/Docker/frontend/.env << 'ENVFILE'
+          VITE_API_URL=${{secrets.API_URL}}
+          ENVFILE
+          EOF
 
+      - name: Build app
+        run: npm run build
 
       - name: Setup SSH
         run: |
@@ -54,17 +64,6 @@ jobs:
       - name: Fix file ownership
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/frontend/html"
-
-      - name: Create .env on server
-        run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-          cat > ~/Docker/frontend/.env << 'ENVFILE'
-          VITE_API_URL=${{secrets.API_URL}}
-          ENVFILE
-          EOF
-
-      - name: Build app
-        run: npm run build
 
       - name: Restart frontend container
         run: |
