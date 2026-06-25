@@ -29,6 +29,19 @@ jobs:
       - name: Install dependencies
         run: composer install --no-dev --prefer-dist --optimize-autoloader
 
+      - name: PHP syntax check
+        run: |
+          find . -name '*.php' -not -path './vendor/*' -exec php -l {} \; | grep -v 'No syntax errors' && exit 1 || echo "All PHP files OK"
+
+      - name: Class autoload check
+        run: |
+          php -r '
+            require "vendor/autoload.php";
+            $classes = ["App\Connect", "App\Authintication", "App\RedisService", "App\TokenService", "App\Router"];
+            foreach ($classes as $c) { class_exists($c) ?: throw new Exception("$c not found"); }
+            echo "All classes autoload OK\n";
+          '
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh/
@@ -68,3 +81,9 @@ jobs:
       - name: Restart backend container
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker restart backend && docker compose up -d backend"
+
+      - name: Health check
+        run: |
+          sleep 5
+          curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://harpapi.smartech.bg/login -X OPTIONS | grep -q '200' && echo 'OPTIONS OK' || echo 'WARNING: OPTIONS failed'
+          curl -s --max-time 10 https://harpapi.smartech.bg/nonexistent | grep -q 'Not found' && echo '404 route OK' || echo 'WARNING: 404 route failed'

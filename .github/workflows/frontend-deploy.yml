@@ -27,14 +27,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Create .env.production
-      #   run: |
-      #     echo "VITE_API_URL=${{ secrets.API_URL }}" > .env.production
+      - name: Lint check
+        run: npx eslint src/ 2>&1 || echo 'Lint warnings (non-blocking)'
 
       - name: Build app
         env:
           VITE_API_URL: ${{ secrets.API_URL }}
         run: npm run build
+
+      - name: Verify API_URL in build
+        run: |
+          grep -q '${{ secrets.API_URL }}' dist/assets/*.js && echo 'API_URL baked in build OK' || echo 'WARNING: API_URL not found in build output'
 
       - name: Setup SSH
         run: |

@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: composer install --no-dev --prefer-dist --optimize-autoloader
 
+      - name: PHP syntax check
+        run: php -l worker.php
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh/
