@@ -5,7 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
-use App\Authintication;
+use App\Authentication;
 use App\Router;
 
 header('Access-Control-Allow-Origin: *');
@@ -25,7 +25,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 try {
-    $auth = new Authintication();
+    $auth = new Authentication();
     $router = new Router();
 } catch (Throwable $e) {
     http_response_code(500);

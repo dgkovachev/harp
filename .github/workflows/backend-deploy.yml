@@ -37,7 +37,7 @@ jobs:
         run: |
           php -r '
             require "vendor/autoload.php";
-            $classes = ["App\Connect", "App\Authintication", "App\RedisService", "App\TokenService", "App\Router"];
+            $classes = ["App\Connect", "App\Authentication", "App\RedisService", "App\TokenService", "App\Router"];
             foreach ($classes as $c) { class_exists($c) ?: throw new Exception("$c not found"); }
             echo "All classes autoload OK\n";
           '

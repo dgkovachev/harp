@@ -5,7 +5,7 @@ namespace App;
 use PDO;
 use App\TokenService;
 
-class Authintication extends Connect
+class Authentication extends Connect
 {
     private $tokenService;
 
@@ -54,7 +54,6 @@ class Authintication extends Connect
         if ($this->isDomainBlocked($data['user_email'])) {
             if (empty($data['join_code']) || !$this->isJoinCodeValid($data['join_code'])) {
                 $this->HandleError('This email requires a valid school join code', 400);
-                //MAKE THE FRONT END SHOWS A MESSAGE SAYING "This email requires a valid school join code" AND A HIGHLIGHT FOR THE PLACE TO ENTER THE JOIN CODE
             }
             $schoolId = $this->getSchoolFromJoinCode($data['join_code']);
         } else {
