@@ -37,7 +37,14 @@ jobs:
 
       - name: Verify API_URL in build
         run: |
-          grep -q '${{ secrets.API_URL }}' dist/assets/*.js && echo 'API_URL baked in build OK' || echo 'WARNING: API_URL not found in build output'
+          URL='${{ secrets.API_URL }}'
+          if [ -z "$URL" ]; then
+            echo 'WARNING: API_URL secret is empty — set it in GitHub repo secrets'
+          elif grep -q "$URL" dist/assets/*.js; then
+            echo 'API_URL baked in build OK'
+          else
+            echo 'WARNING: API_URL not found in build output'
+          fi
 
       - name: Setup SSH
         run: |
