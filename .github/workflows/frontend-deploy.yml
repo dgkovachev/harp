@@ -43,7 +43,7 @@ jobs:
 
       - name: Deploy frontend files
         run: |
-          rsync -azv --delete --ignore-existing \
+          rsync -azv --delete \
             --exclude='.env' \
             --exclude='tests' \
             --exclude='.git' \
