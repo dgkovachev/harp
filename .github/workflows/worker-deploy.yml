@@ -46,6 +46,8 @@ jobs:
             --exclude='tests' \
             --exclude='.git' \
             --exclude='.github' \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
             --rsync-path="sudo rsync" \
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/worker/html"

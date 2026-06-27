@@ -57,6 +57,8 @@ jobs:
             --exclude='.git' \
             --exclude='.github' \
             --exclude='.gitignore' \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
             --rsync-path="sudo rsync" \
             ./ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/backend/html"
