@@ -4,14 +4,15 @@ namespace App;
 
 use PDO;
 use App\TokenService;
-
-class Authentication extends Connect
+use App\RedisService;
+class Authentication extends PDO_CON
 {
     private $tokenService;
-
+    private $redis;
     public function __construct()
     {
         parent::__construct();
+        $this->redis = new RedisService();
         $this->tokenService = new TokenService($this->redis);
     }
 
@@ -101,7 +102,6 @@ class Authentication extends Connect
             'email' => $data['user_email'],
             'name' => $data['display_name'],
         ]);
-
         echo json_encode(['success' => true, 'token' => $token, 'user_id' => $userId]);
     }
 

@@ -3,7 +3,7 @@ namespace App;
 
 use Exception;
 
-class RedisService extends Connect
+class RedisService extends REDIS_CON
 {
     private $client;
     private $sessionTtl = 86400;
@@ -12,6 +12,7 @@ class RedisService extends Connect
 
     public function __construct()
     {
+        parent::__construct();
         $this->client = $this->redis;
     }
 
@@ -85,7 +86,9 @@ class RedisService extends Connect
 
     public function pushNotification($type, $data)
     {
-        if (!$this->client) return;
+        if (!$this->client) {
+            return;
+        }
         $this->client->xadd('queue:notifications', [
             'type'       => $type,
             'data'       => json_encode($data),

@@ -1,6 +1,12 @@
 {
     "require": {
         "vlucas/phpdotenv": "^5.6",
-        "predis/predis": "^3.5"
+        "predis/predis": "^3.5",
+        "phpmailer/phpmailer": "^7.1"
+    },
+        "autoload": {
+        "psr-4": {
+            "Worker\\": "src/"
+        }
     }
 }

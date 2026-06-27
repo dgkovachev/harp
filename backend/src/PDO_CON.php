@@ -5,18 +5,14 @@ use PDO;
 use PDOException;
 use Exception;
 
-class Connect
+class PDO_CON
 {
     protected $pdo;
-    protected $redis;
 
     public function __construct()
     {
         if(!$this->connect()){
             throw new Exception('SQL failed to connect');
-        }
-        if(!$this->connectRedis()){
-            throw new Exception('Redis failed to connect');
         }
     }
 
@@ -37,21 +33,6 @@ class Connect
         } catch (PDOException $e) {
             error_log('DB connection error: ' . $e->getMessage());
             $this->pdo = null;
-            return false;
-        }
-    }
-
-    private function connectRedis(): bool
-    {
-        $host = $_ENV['REDIS_HOST'] ?? getenv('REDIS_HOST') ?? '127.0.0.1';
-        $port = $_ENV['REDIS_PORT'] ?? getenv('REDIS_PORT') ?? 6379;
-
-        try {
-            $this->redis = new RedisService($host, $port);
-            return true;
-        } catch (Exception $e) {
-            error_log('Redis connection failed: ' . $e->getMessage());
-            $this->redis = null;
             return false;
         }
     }
