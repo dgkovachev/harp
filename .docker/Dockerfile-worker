@@ -10,4 +10,4 @@ RUN apt-get update && apt-get upgrade -y \
 WORKDIR /var/www/html
 
 # Default command
-CMD ["php", "worker.php"]
+CMD ["php", "index.php"]
