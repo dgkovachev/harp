@@ -92,7 +92,6 @@ class RedisService extends REDIS_CON
         $this->client->xadd('queue:notifications', [
             'type'       => $type,
             'data'       => json_encode($data),
-            'created_at' => time()
         ], '*');
     }
 }

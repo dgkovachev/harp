@@ -97,10 +97,11 @@ class Authentication extends PDO_CON
             'role' => $data['role'] ?? 'student',
         ];
         $token = $this->redis->createSession($user);
-        $this->redis->pushNotification('welcome_email', [
+        $this->redis->pushNotification('verify_email', [
             'user_id' => $userId,
             'email' => $data['user_email'],
             'name' => $data['display_name'],
+            'token' => $token
         ]);
         echo json_encode(['success' => true, 'token' => $token, 'user_id' => $userId]);
     }

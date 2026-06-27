@@ -4,9 +4,9 @@
         "predis/predis": "^3.5",
         "phpmailer/phpmailer": "^7.1"
     },
-        "autoload": {
+    "autoload": {
         "psr-4": {
-            "Worker\\": "src/"
+            "Worker\\": "src"
         }
     }
 }

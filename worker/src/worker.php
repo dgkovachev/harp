@@ -5,6 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
 use Predis\Client as RedisClient;
+use Worker\Mailer;
 
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
@@ -12,15 +13,12 @@ $dotenv->load();
 class Worker
 {
     private $redis;
+    private $mailer;
     private $streamName;
-    private $group;
-    private $consumer;
 
     public function __construct()
     {
         $this->streamName = 'queue:notifications';
-        $this->group = 'worker';
-        $this->consumer = 'consumer-1';
 
         $host = $_ENV['REDIS_HOST'] ?? getenv('REDIS_HOST') ?? '127.0.0.1';
         $port = $_ENV['REDIS_PORT'] ?? getenv('REDIS_PORT') ?? 6379;
@@ -31,14 +29,12 @@ class Worker
             'port' => $port,
         ]);
 
-        try {
-            $this->redis->xgroup('CREATE', $this->streamName, $this->group, '0', true);
-        } catch (\Exception $e) {
-            // Group already exists — ignore
-        }
+
+        $this->mailer = new Mailer();
+
     }
 
-    private function checkType($type, $data, $fields)
+    private function checkType($type, $data)
     {
         switch ($type) {
             case 'welcome_email':
@@ -47,35 +43,49 @@ class Worker
             case 'password_reset':
                 echo "  Sending password reset to {$data['email']}\n";
                 break;
+            case "verify_email":
+                $email = $data['email'] ?? '';
+                $name = htmlspecialchars($data['name'] ?? 'User');
+                $token = $data['token'] ?? bin2hex(random_bytes(32));
+                $verifyLink = "https://harpapi.smartech.bg/verify?token={$token}&email=" . urlencode($email);
+                if ($email) {
+                    require_once __DIR__ . '/../templates/verify.php';
+                    $htmlBody = renderVerifyEmail($name, $verifyLink);
+                    $textBody = "Hello {$name},\n\n";
+                    $textBody .= "Please verify your email address by visiting this link:\n\n"; // <-- Blank line before
+                    $textBody .= "{$verifyLink}\n\n"; // <-- URL on its own line, blank line after
+                    $textBody .= "This link expires in 24 hours.";
+                    
+                    $success = $this->mailer->sendMail($email, "Verify Your HARP Account", $htmlBody, $textBody);
+                    echo $success ? "  ✅ Verification email sent\n" : "  ❌ SMTP failed\n";
+                }
+                break;
             default:
                 echo "  Unknown job type: $type\n";
-                print_r($fields);
         }
     }
 
     private function readMessages()
     {
-        $messages = $this->redis->xreadgroup($this->group, $this->consumer, 1, null, false, $this->streamName, '>');
-
+        $messages = $this->redis->xread(1, 0, [$this->streamName, "0-0"]);
         if ($messages) {
-            foreach ($messages[$this->streamName] as $entry) {
-                $id = $entry[0];
-                $flatFields = $entry[1];
+            $entry = $messages[$this->streamName][0];
+            $id = $entry[0];
+            $flatFields = $entry[1];
 
-                $fields = [];
-                for ($i = 0; $i < count($flatFields); $i += 2) {
-                    $fields[$flatFields[$i]] = $flatFields[$i + 1] ?? null;
-                }
-
-                $type = $fields['type'] ?? 'unknown';
-                $data = json_decode($fields['data'] ?? '{}', true);
-
-                $time = date('Y-m-d H:i:s');
-                echo "[$time] Processing: $type\n";
-                $this->checkType($type, $data, $fields);
-
-                $this->redis->xack($this->streamName, $this->group, $id);
+            $fields = [];
+            for ($i = 0; $i < count($flatFields); $i += 2) {
+                $fields[$flatFields[$i]] = $flatFields[$i + 1] ?? null;
             }
+
+            $type = $fields['type'] ?? 'unknown';
+            $data = json_decode($fields['data'] ?? '{}', true);
+
+            $time = date('Y-m-d H:i:s');
+            echo "[$time] Processing: $type\n";
+            $this->checkType($type, $data);
+
+            $this->redis->xdel($this->streamName, $id);
         }
     }
 
