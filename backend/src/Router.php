@@ -51,6 +51,6 @@ class Router
         }
 
         http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Not found']);
+        phpInfo();
     }
 }
