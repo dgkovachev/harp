@@ -95,6 +95,38 @@ window.register = async (email, name, password, joinCode) => {
   }
 };
 
+window.createAnnouncement = async (data) => {
+  const token = localStorage.getItem('harp_token');
+  try {
+    const res = await fetch(`${API_URL}/createAnnouncement`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
+};
+
+window.getAnnouncements = async () => {
+  try {
+    const res = await fetch(`${API_URL}/announcements`);
+    return await res.json();
+  } catch {
+    return { success: false, data: [] };
+  }
+};
+
+window.getAnnouncement = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/announcement/${id}`);
+    return await res.json();
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
+};
+
 window.checkDomain = async (domain) => {
   try {
     const res = await fetch(`${API_URL}/check-domain/${encodeURIComponent(domain)}`, {

@@ -10,6 +10,8 @@ if (file_exists(__DIR__ . '/../.env')) {
 use App\Router;
 use App\Authentication;
 use App\AnnouncementHandler;
+use App\RedisService;
+use App\TokenService;
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -29,8 +31,10 @@ ini_set('display_errors', '1');
 
 try {
     $router = new Router();
+    $redis = new RedisService();
+    $tokenService = new TokenService($redis);
     $auth = new Authentication();
-    $AnnouncementHandler = new AnnouncementHandler();
+    $AnnouncementHandler = new AnnouncementHandler($tokenService);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

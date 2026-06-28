@@ -2,27 +2,42 @@
 namespace App;
 use PDO;
 class AnnouncementHandler extends PDO_CON{
-    public function __construct(){
-        if(!isset($this->pdo))parent::__construct();
+    private $tokenService;
+
+    public function __construct($tokenService){
+        parent::__construct();
+        $this->tokenService = $tokenService;
+    }
+
+    private function requireAuth(){
+        $token = $this->tokenService->extractToken();
+        if (!$this->tokenService->authenticate($token)) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
     }
 
     public function insertAnnouncement(array $params){
+        $this->requireAuth();
         $data = json_decode(file_get_contents('php://input'), true);
+        $user = $this->tokenService->getCurrentUser();
         $stmt = $this->pdo->prepare("INSERT INTO announcements (school_id, club_id, created_by, title, body, category) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $data['school_id'],
             $data['club_id'] ?? null,
-            $data['created_by'],
+            $user['user_id'],
             $data['title'],
             $data['body'],
             $data['category']
         ]);
         if($stmt->rowCount() > 0) echo json_encode(['success' => true, 'message'=> 'Created announcement successfully']);
-        else echo json_encode(['success' => false, 'message'=> 'Failed to create announcement']);
+        else echo json_encode(['success' => false, 'message'=> 'Failed to create announcement', "user" => $user]);
 
     }
 
     public function getAnnouncementByID(array $params){
+        //echo json_encode(['success' => $this->tokenService->getCurrentUser()]);
         $stmt = $this->pdo->prepare("SELECT * FROM announcements WHERE announcement_id = ?");
         $stmt->execute([$params['id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -44,6 +59,7 @@ class AnnouncementHandler extends PDO_CON{
     }
 
     public function updateAnnouncement(array $params){
+        $this->requireAuth();
         $data = json_decode(file_get_contents('php://input'), true);
         $stmt = $this->pdo->prepare("UPDATE announcements SET school_id = ?, club_id = ?, title = ?, body = ?, category = ? WHERE announcement_id = ?");
         $stmt->execute([
@@ -59,6 +75,7 @@ class AnnouncementHandler extends PDO_CON{
     }
 
     public function deleteAnnouncement(array $params){
+        $this->requireAuth();
         $stmt = $this->pdo->prepare("DELETE FROM announcements WHERE announcement_id = ?");
         $stmt->execute([$params['id']]);
         if($stmt->rowCount() > 0) echo json_encode(['success' => true, 'message'=> 'Deleted announcement successfully']);
