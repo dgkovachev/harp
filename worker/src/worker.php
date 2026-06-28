@@ -7,8 +7,10 @@ use Dotenv\Dotenv;
 use Predis\Client as RedisClient;
 use Worker\Mailer;
 
-$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+if (file_exists(__DIR__ . '/../.env')) {
+    $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+}
 
 class Worker
 {
