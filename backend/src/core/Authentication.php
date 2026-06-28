@@ -95,6 +95,7 @@ class Authentication extends PDO_CON
             'user_email' => $data['user_email'],
             'display_name' => $data['display_name'],
             'role' => $data['role'] ?? 'student',
+            'school_id' => $schoolId,
         ];
         $token = $this->redis->createSession($user);
         $this->redis->pushNotification('verify_email', [
@@ -173,11 +174,20 @@ class Authentication extends PDO_CON
         echo json_encode(['success' => true]);
     }
 
-    private function requireAuth()
+    public function requireAuth()
     {
         $token = $this->tokenService->extractToken();
         if (!$this->tokenService->authenticate($token)) {
             $this->HandleError('Missing or invalid token', 401);
+        }
+    }
+
+    public function requireRole($role)
+    {
+        $this->requireAuth();
+        $user = $this->tokenService->getCurrentUser();
+        if ($user['role'] !== $role) {
+            $this->HandleError('Forbidden', 403);
         }
     }
 
