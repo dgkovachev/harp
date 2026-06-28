@@ -42,4 +42,26 @@ class AnnouncementHandler extends PDO_CON{
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $rows]);
     }
+
+    public function updateAnnouncement(array $params){
+        $data = json_decode(file_get_contents('php://input'), true);
+        $stmt = $this->pdo->prepare("UPDATE announcements SET school_id = ?, club_id = ?, title = ?, body = ?, category = ? WHERE announcement_id = ?");
+        $stmt->execute([
+            $data['school_id'] ?? null,
+            $data['club_id'] ?? null,
+            $data['title'] ?? null,
+            $data['body'] ?? null,
+            $data['category'] ?? null,
+            $params['id']
+        ]);
+        if($stmt->rowCount() > 0) echo json_encode(['success' => true, 'message'=> 'Updated announcement successfully']);
+        else echo json_encode(['success' => false, 'message'=> 'No changes made']);
+    }
+
+    public function deleteAnnouncement(array $params){
+        $stmt = $this->pdo->prepare("DELETE FROM announcements WHERE announcement_id = ?");
+        $stmt->execute([$params['id']]);
+        if($stmt->rowCount() > 0) echo json_encode(['success' => true, 'message'=> 'Deleted announcement successfully']);
+        else echo json_encode(['success' => false, 'message'=> 'Announcement not found']);
+    }
 }

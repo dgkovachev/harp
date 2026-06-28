@@ -7,8 +7,8 @@ if (file_exists(__DIR__ . '/../.env')) {
     $dotenv->load();
 }
 
-use App\Authentication;
 use App\Router;
+use App\Authentication;
 use App\AnnouncementHandler;
 
 header('Access-Control-Allow-Origin: *');
@@ -28,8 +28,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 try {
-    $auth = new Authentication();
     $router = new Router();
+    $auth = new Authentication();
     $AnnouncementHandler = new AnnouncementHandler();
 } catch (Throwable $e) {
     http_response_code(500);
@@ -37,16 +37,6 @@ try {
     exit;
 }
 
-$router->post('/login', [$auth, 'login']);
-$router->post('/register', [$auth, 'register']);
-$router->post('/logout', [$auth, 'logout']);
-$router->get('/users/{id}', [$auth, 'getUser']);
-$router->put('/users/{id}', [$auth, 'updateUser']);
-$router->delete('/users/{id}', [$auth, 'deleteUser']);
-$router->post('/check-domain/{domain}', [$auth, 'checkDomain']);
-$router->post('/createAnnouncement', [$AnnouncementHandler, 'insertAnnouncement']);
-$router->get('/announcement/{id}', [$AnnouncementHandler, 'getAnnouncementByID']);
-$router->get('/announcements', [$AnnouncementHandler, 'getAllAnnouncements']);
-$router->get('/announcements/search/{title}', [$AnnouncementHandler, 'getAnnouncementByTitle']);
+require __DIR__ . '/../routes/routes.php';
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
