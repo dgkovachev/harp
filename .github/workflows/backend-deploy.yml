@@ -51,8 +51,6 @@ jobs:
             --exclude='.git' \
             --exclude='.github' \
             --exclude='.gitignore' \
-            --exclude='composer.json' \
-            --exclude='composer.lock' \
             --exclude='vendor' \
             --rsync-path="sudo rsync" \
             ./ \
@@ -78,6 +76,10 @@ jobs:
       - name: Restart backend container
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker restart backend && docker compose up -d backend"
+
+      - name: Install dependencies inside container
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker exec backend composer install --no-dev --prefer-dist --optimize-autoloader -d /var/www/html 2>/dev/null || docker exec backend sh -c 'apt-get update -qq && apt-get install -y -qq composer && composer install --no-dev --prefer-dist --optimize-autoloader -d /var/www/html'"
 
       - name: Health check
         run: |

@@ -9,6 +9,7 @@ if (file_exists(__DIR__ . '/../.env')) {
 
 use App\Authentication;
 use App\Router;
+use App\AnnouncementHandler;
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -29,6 +30,7 @@ ini_set('display_errors', '1');
 try {
     $auth = new Authentication();
     $router = new Router();
+    $AnnouncementHandler = new AnnouncementHandler();
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -42,5 +44,9 @@ $router->get('/users/{id}', [$auth, 'getUser']);
 $router->put('/users/{id}', [$auth, 'updateUser']);
 $router->delete('/users/{id}', [$auth, 'deleteUser']);
 $router->post('/check-domain/{domain}', [$auth, 'checkDomain']);
+$router->post('/createAnnouncement', [$AnnouncementHandler, 'insertAnnouncement']);
+$router->get('/announcement/{id}', [$AnnouncementHandler, 'getAnnouncementByID']);
+$router->get('/announcements', [$AnnouncementHandler, 'getAllAnnouncements']);
+$router->get('/announcements/search/{title}', [$AnnouncementHandler, 'getAnnouncementByTitle']);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

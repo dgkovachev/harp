@@ -1,3 +1,4 @@
 vendor
 *.env
 php-custom.ini
+test.json
