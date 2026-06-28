@@ -31,6 +31,7 @@ class RedisService extends REDIS_CON
             'user_email' => $user['user_email'],
             'display_name' => $user['display_name'],
             'role' => $user['role'],
+            'school_id' => $user['school_id'] ?? null,
             'created_at' => time(),
         ];
         $this->client->setex("session:{$token}", $this->sessionTtl, json_encode($session));

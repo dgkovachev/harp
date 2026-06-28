@@ -10,6 +10,8 @@ if (file_exists(__DIR__ . '/../.env')) {
 use App\Router;
 use App\Authentication;
 use App\AnnouncementHandler;
+use App\EventHandler;
+use App\ClubHandler;
 use App\RedisService;
 use App\TokenService;
 
@@ -35,6 +37,8 @@ try {
     $tokenService = new TokenService($redis);
     $auth = new Authentication();
     $AnnouncementHandler = new AnnouncementHandler($tokenService);
+    $EventHandler = new EventHandler($tokenService);
+    $ClubHandler = new ClubHandler($tokenService);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
