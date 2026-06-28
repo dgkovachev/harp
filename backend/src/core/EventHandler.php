@@ -6,11 +6,13 @@ use PDO;
 class EventHandler extends PDO_CON
 {
     private $tokenService;
+    private $redis;
 
-    public function __construct($tokenService)
+    public function __construct($tokenService, $redis)
     {
         parent::__construct();
         $this->tokenService = $tokenService;
+        $this->redis = $redis;
     }
 
     private function requireAuth()
@@ -195,6 +197,17 @@ class EventHandler extends PDO_CON
                 $regId = (int)$this->pdo->lastInsertId();
             }
             $this->pdo->commit();
+
+            $this->redis->pushNotification('registration_confirmed', [
+                'user_id' => $user['user_id'],
+                'email' => $user['user_email'],
+                'name' => $user['display_name'],
+                'event_id' => $eventId,
+                'event_title' => $event['title'],
+                'event_date' => $event['event_date'],
+                'location' => $event['location'],
+            ]);
+
             echo json_encode(['success' => true, 'registration_id' => $regId, 'status' => 'confirmed']);
         } else {
             $stmt = $this->pdo->prepare("SELECT COALESCE(MAX(queue_position), 0) + 1 AS next_pos FROM registrations WHERE event_id = ? AND status = 'waitlisted'");
@@ -210,6 +223,16 @@ class EventHandler extends PDO_CON
                 $regId = (int)$this->pdo->lastInsertId();
             }
             $this->pdo->commit();
+
+            $this->redis->pushNotification('registration_waitlisted', [
+                'user_id' => $user['user_id'],
+                'email' => $user['user_email'],
+                'name' => $user['display_name'],
+                'event_id' => $eventId,
+                'event_title' => $event['title'],
+                'queue_position' => $nextPos,
+            ]);
+
             echo json_encode(['success' => true, 'registration_id' => $regId, 'status' => 'waitlisted', 'queue_position' => $nextPos]);
         }
     }
@@ -257,6 +280,27 @@ class EventHandler extends PDO_CON
         }
 
         $this->pdo->commit();
+
+        if ($wasConfirmed && isset($next)) {
+            $stmt = $this->pdo->prepare("SELECT r.user_id, u.user_email, u.display_name, e.title, e.event_date, e.location 
+                FROM registrations r JOIN users u ON r.user_id = u.user_id 
+                JOIN events e ON r.event_id = e.event_id 
+                WHERE r.registration_id = ?");
+            $stmt->execute([$next['registration_id']]);
+            $promoted = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($promoted) {
+                $this->redis->pushNotification('waitlist_promoted', [
+                    'user_id' => $promoted['user_id'],
+                    'email' => $promoted['user_email'],
+                    'name' => $promoted['display_name'],
+                    'event_id' => $eventId,
+                    'event_title' => $promoted['title'],
+                    'event_date' => $promoted['event_date'],
+                    'location' => $promoted['location'],
+                ]);
+            }
+        }
+
         echo json_encode(['success' => true, 'message' => 'Registration cancelled']);
     }
 

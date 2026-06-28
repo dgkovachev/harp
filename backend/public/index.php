@@ -37,7 +37,7 @@ try {
     $tokenService = new TokenService($redis);
     $auth = new Authentication();
     $AnnouncementHandler = new AnnouncementHandler($tokenService);
-    $EventHandler = new EventHandler($tokenService);
+    $EventHandler = new EventHandler($tokenService, $redis);
     $ClubHandler = new ClubHandler($tokenService);
 } catch (Throwable $e) {
     http_response_code(500);
