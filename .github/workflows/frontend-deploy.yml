@@ -125,11 +125,11 @@ jobs:
       #     chmod 600 ~/.ssh/id_rsa
       #     ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      # - name: Deploy API over SSH
-      #   run: |
-      #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
-      #       docker compose pull
-      #       docker compose up -d
-      #       docker image ls -qf "dangling=true" | xargs docker rmi || true
+        # - name: Deploy API over SSH
+        #   run: |
+        #     ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+        #       docker compose pull
+        #       docker compose up -d
+        #       docker image ls -qf "dangling=true" | xargs docker rmi || true
 
 

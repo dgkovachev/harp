@@ -72,7 +72,6 @@ jobs:
 
       - name: Deploy image on server
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            docker compose pull \
-            docker compose up -d worker \
-            docker image ls -qf "dangling=true" | xargs docker rmi || true
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker compose pull && docker compose up -d && docker image ls -qf "dangling=true" | xargs docker rmi || true"
+
+
