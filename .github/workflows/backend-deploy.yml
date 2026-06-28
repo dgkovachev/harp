@@ -34,13 +34,7 @@ jobs:
           find . -name '*.php' -not -path './vendor/*' -exec php -l {} \; | grep -v 'No syntax errors' && exit 1 || echo "All PHP files OK"
 
       - name: Class autoload check
-        run: |
-          php -r '
-            require "vendor/autoload.php";
-            $classes = ["App\PDO_CON", "App\REDIS_CON", "App\Authentication", "App\RedisService", "App\TokenService", "App\Router"];
-            foreach ($classes as $c) { class_exists($c) ?: throw new Exception("$c not found"); }
-            echo "All classes autoload OK\n";
-          '
+        run: php bin/check-autoload.php
 
       - name: Setup SSH
         run: |
