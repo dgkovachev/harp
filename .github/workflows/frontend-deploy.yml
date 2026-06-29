@@ -74,9 +74,9 @@ jobs:
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/frontend/html ~/Docker/frontend/nginx.conf"
 
-      - name: Reload nginx
+      - name: Copy nginx config and reload
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker exec frontend nginx -s reload 2>/dev/null || (docker cp ~/Docker/frontend/nginx.conf frontend:/etc/nginx/conf.d/default.conf && docker exec frontend nginx -s reload)"
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker cp ~/Docker/frontend/nginx.conf frontend:/etc/nginx/conf.d/default.conf && docker exec frontend nginx -s reload"
 
 
 ### Old Docker deployment method (commented out)
