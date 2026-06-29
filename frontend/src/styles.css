@@ -944,6 +944,28 @@ button {
   text-transform: capitalize;
 }
 
+.danger-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e74c3c;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #e74c3c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.danger-action:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+
 .home-empty {
   color: var(--text-secondary);
   font-size: 0.9rem;

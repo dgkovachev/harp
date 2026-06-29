@@ -51,6 +51,14 @@ export default function HomePage({ onLogout }) {
     if (onLogout) onLogout();
   };
 
+  const handleDeleteAccount = async () => {
+    if (!profile) return;
+    if (!window.confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
+    if (!window.confirm('All your events, registrations, and clubs will be permanently deleted. Continue?')) return;
+    const result = await window.deleteUser(profile.user_id);
+    if (result.success && onLogout) onLogout();
+  };
+
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
   return (
@@ -197,6 +205,16 @@ export default function HomePage({ onLogout }) {
                   ) : (
                     <p className="home-empty">Loading profile...</p>
                   )}
+                </div>
+              </div>
+
+              <div className="home-card">
+                <div className="home-card-header">
+                  <h2>Danger Zone</h2>
+                </div>
+                <div className="home-card-body">
+                  <p className="home-empty">Permanently delete your account and all associated data.</p>
+                  <button className="danger-action" onClick={handleDeleteAccount}>Delete Account</button>
                 </div>
               </div>
             </div>
