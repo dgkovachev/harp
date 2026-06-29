@@ -14,8 +14,15 @@ class TokenService
     public function extractToken()
     {
         $header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
-        if (preg_match('/Bearer\s(\S+)/', $header, $m)) {
+        if ($header && preg_match('/Bearer\s(\S+)/', $header, $m)) {
             return $m[1];
+        }
+        if (function_exists('getallheaders')) {
+            $allHeaders = getallheaders();
+            $authHeader = $allHeaders['Authorization'] ?? $allHeaders['authorization'] ?? '';
+            if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $m)) {
+                return $m[1];
+            }
         }
         return null;
     }
