@@ -1,7 +1,119 @@
 import { useState, useEffect, useMemo } from 'react';
 import HelpPage from './HelpPage';
+import VerifyPage from './VerifyPage';
+import HomePage from './HomePage';
 
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '') || "http://localhost:8000";
+
+window.getToken = () => localStorage.getItem('harp_token');
+
+window.login = async (email, password) => {
+  const res = await fetch(`${API_URL}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_email: email, password })
+  });
+  const data = await res.json();
+  if (data.token) localStorage.setItem('harp_token', data.token);
+  return data;
+};
+
+window.register = async (email, name, password, joinCode) => {
+  try {
+    const body = { user_email: email, display_name: name, password };
+    if (joinCode) body.join_code = joinCode;
+    const res = await fetch(`${API_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.token) localStorage.setItem('harp_token', data.token);
+    return data;
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
+};
+
+window.createAnnouncement = async (data) => {
+  const token = window.getToken();
+  try {
+    const res = await fetch(`${API_URL}/createAnnouncement`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
+};
+
+window.getAnnouncements = async () => {
+  try {
+    const res = await fetch(`${API_URL}/announcements`);
+    return await res.json();
+  } catch {
+    return { success: false, data: [] };
+  }
+};
+
+window.getAnnouncement = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/announcement/${id}`);
+    return await res.json();
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
+};
+
+window.checkDomain = async (domain) => {
+  try {
+    const res = await fetch(`${API_URL}/check-domain/${encodeURIComponent(domain)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain })
+    });
+    const data = await res.json();
+    return data;
+  } catch {
+    return { blocked: null };
+  }
+};
+
+window.getUser = async (id) => {
+  const res = await fetch(`${API_URL}/users/${id}`, {
+    headers: { 'Authorization': `Bearer ${window.getToken()}` }
+  });
+  return res.json();
+};
+
+window.deleteUser = async (id) => {
+  try {
+    const res = await fetch(`${API_URL}/users/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${window.getToken()}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.removeItem('harp_token');
+      window.location.href = '/';
+    }
+    return data;
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
+};
+
+window.logout = async () => {
+  try {
+    await fetch(`${API_URL}/logout`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${window.getToken()}` }
+    });
+  } catch { }
+  localStorage.removeItem('harp_token');
+};
 
 const registrationRoles = [
   {
@@ -63,108 +175,6 @@ function NoteParticles() {
 }
 
 export default function App() {
-
-  useEffect(() => {
-const token = () => localStorage.getItem('harp_token');
-
-window.login = async (email, password) => {
-  const res = await fetch(`${API_URL}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_email: email, password })
-  });
-  const data = await res.json();
-  if (data.token) localStorage.setItem('harp_token', data.token);
-  return data;
-};
-
-window.register = async (email, name, password, joinCode) => {
-  try {
-    const body = { user_email: email, display_name: name, password };
-    if (joinCode) body.join_code = joinCode;
-    const res = await fetch(`${API_URL}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (data.token) localStorage.setItem('harp_token', data.token);
-    return data;
-  } catch {
-    return { success: false, error: 'Could not reach server' };
-  }
-};
-
-window.createAnnouncement = async (data) => {
-  const token = localStorage.getItem('harp_token');
-  try {
-    const res = await fetch(`${API_URL}/createAnnouncement`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(data)
-    });
-    return await res.json();
-  } catch {
-    return { success: false, error: 'Could not reach server' };
-  }
-};
-
-window.getAnnouncements = async () => {
-  try {
-    const res = await fetch(`${API_URL}/announcements`);
-    return await res.json();
-  } catch {
-    return { success: false, data: [] };
-  }
-};
-
-window.getAnnouncement = async (id) => {
-  try {
-    const res = await fetch(`${API_URL}/announcement/${id}`);
-    return await res.json();
-  } catch {
-    return { success: false, error: 'Could not reach server' };
-  }
-};
-
-window.checkDomain = async (domain) => {
-  try {
-    const res = await fetch(`${API_URL}/check-domain/${encodeURIComponent(domain)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ domain })
-    });
-    const data = await res.json();
-    return data;
-  } catch {
-    return { blocked: false };
-  }
-};
-
-window.getUser = async (id) => {
-  const res = await fetch(`${API_URL}/users/${id}`, {
-    headers: { 'Authorization': `Bearer ${token()}` }
-  });
-  return res.json();
-};
-
-window.deleteUser = async (id) => {
-  const res = await fetch(`${API_URL}/users/${id}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token()}` }
-  });
-  return res.json();
-};
-
-window.logout = async () => {
-  await fetch(`${API_URL}/logout`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token()}` }
-  });
-  localStorage.removeItem('harp_token');
-};
-  }, []);
-
   const [mode, setMode] = useState('sign-in');
   const [role, setRole] = useState('student');
   const [page, setPage] = useState('auth');
@@ -191,11 +201,14 @@ window.logout = async () => {
       const domain = email.slice(atIndex + 1);
       const timer = setTimeout(() => {
         window.checkDomain(domain).then(data => {
-          if (data.blocked) {
+          if (data.blocked === true) {
             setDomainStatus(data.reason);
             setEmailMessage(data.reason === 'blocked'
               ? 'This email requires a school join code'
               : 'This email domain is not associated with any school');
+          } else if (data.blocked === null) {
+            setDomainStatus('blocked');
+            setEmailMessage('This email requires a school join code');
           } else {
             setDomainStatus('ok');
             setEmailMessage('');
@@ -214,6 +227,41 @@ window.logout = async () => {
   }, [email]);
 
   const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('verified') || params.has('verify')) {
+      setPage('verify');
+      return;
+    }
+
+    const token = localStorage.getItem('harp_token');
+    if (token) {
+      fetch(`${API_URL}/events`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(r => {
+        if (!r.ok) {
+          localStorage.removeItem('harp_token');
+          setPage('auth');
+        } else {
+          setPage('home');
+        }
+      }).catch(() => {
+        setPage('home');
+      });
+    }
+  }, []);
+
+  const token = localStorage.getItem('harp_token');
+  const isLoggedIn = page === 'home' || (token && page !== 'verify' && page !== 'help');
+
+  if (page === 'verify') {
+    return <VerifyPage onBack={() => setPage('auth')} />;
+  }
+
+  if (isLoggedIn) {
+    return <HomePage onLogout={() => { localStorage.removeItem('harp_token'); setPage('auth'); }} />;
+  }
 
   if (page === 'help') {
     return <HelpPage onBack={() => setPage('auth')} theme={theme} onToggleTheme={toggleTheme} />;
@@ -282,13 +330,19 @@ window.logout = async () => {
                 if (!result.success) {
                   if (result.error) {
                     setFormError(result.error);
+                    if (result.error.includes('join code') || result.error.includes('domain')) {
+                      setDomainStatus('blocked');
+                      setEmailMessage('This email requires a school join code');
+                    }
                   }
                 } else {
                   setSuccessMessage('Account created! Check your email to verify.');
                 }
               } else {
-                const result = await window.login(email, password);
-                if (!result.success && result.error) {
+                const result = await window.login(username, password);
+                if (result.success) {
+                  setPage('home');
+                } else if (result.error) {
                   setFormError(result.error);
                 }
               }
