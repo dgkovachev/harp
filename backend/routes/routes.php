@@ -7,6 +7,9 @@ $router->get('/users/{id}', [$auth, 'getUser']);
 $router->put('/users/{id}', [$auth, 'updateUser']);
 $router->delete('/users/{id}', [$auth, 'deleteUser']);
 $router->post('/check-domain/{domain}', [$auth, 'checkDomain']);
+$router->get('/verify', [$auth, 'verifyUser']);
+$router->post('/verify', [$auth, 'verifyUser']);
+$router->post('/resend-verification', [$auth, 'resendVerification']);
 
 $router->post('/createAnnouncement', [$AnnouncementHandler, 'insertAnnouncement']);
 $router->get('/announcement/{id}', [$AnnouncementHandler, 'getAnnouncementByID']);

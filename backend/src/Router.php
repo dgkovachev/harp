@@ -51,6 +51,6 @@ class Router
         }
 
         http_response_code(404);
-        phpInfo();
+        print($method .''. $uri .'');
     }
 }

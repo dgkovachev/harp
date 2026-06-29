@@ -28,7 +28,9 @@ class Authentication extends PDO_CON
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE user_email = ?");
         $stmt->execute([$data['user_email']]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+        if (!$user) {
+            $this->HandleError('Token expired',0);
+        }
         if ($user && password_verify($data['password'] ?? '', $user['password_hash'])) {
             
             if (!$user['is_verified']) {
@@ -75,19 +77,29 @@ class Authentication extends PDO_CON
             }
         }
 
-        $stmt = $this->pdo->prepare("INSERT INTO users (user_email, display_name, password_hash, grade, role, school_id, is_verified, join_code, promoted_by, created_at) 
-                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->execute([
-            $data['user_email'],
-            $data['display_name'],
-            $this->hashPassword($data['password']),
-            $data['grade'] ?? 0,
-            $data['role'] ?? 'student',
-            $schoolId ?? null,
-            $data['is_verified'] ?? 0,
-            $data['join_code'] ?? '',
-            $data['promoted_by'] ?? null
-        ]);
+        try {
+            $stmt = $this->pdo->prepare("INSERT INTO users (user_email, display_name, password_hash, grade, role, school_id, is_verified, join_code, promoted_by, created_at) 
+                                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmt->execute([
+                $data['user_email'],
+                $data['display_name'],
+                $this->hashPassword($data['password']),
+                $data['grade'] ?? 0,
+                $data['role'] ?? 'student',
+                $schoolId ?? null,
+                $data['is_verified'] ?? 0,
+                $data['join_code'] ?? '',
+                $data['promoted_by'] ?? null
+            ]);
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) {
+                $msg = strpos($e->getMessage(), 'user_email') !== false
+                    ? 'This email is already registered'
+                    : 'This display name is already taken';
+                $this->HandleError($msg, 409);
+            }
+            throw $e;
+        }
 
         $userId = $this->pdo->lastInsertId();
         $user = [
@@ -158,9 +170,22 @@ class Authentication extends PDO_CON
     public function deleteUser($params)
     {
         $this->requireAuth();
+        $userId = (int)$params['id'];
 
+        $this->pdo->beginTransaction();
+        $this->pdo->exec("DELETE FROM announcement_attachments WHERE announcement_id IN (SELECT announcement_id FROM announcements WHERE created_by = $userId)");
+        $this->pdo->exec("DELETE FROM announcements WHERE created_by = $userId");
+        $this->pdo->exec("DELETE FROM registrations WHERE user_id = $userId");
+        $this->pdo->exec("DELETE FROM event_members WHERE user_id = $userId");
+        $this->pdo->exec("DELETE FROM club_members WHERE user_id = $userId");
+        $this->pdo->exec("DELETE FROM event_members WHERE event_id IN (SELECT event_id FROM events WHERE created_by = $userId)");
+        $this->pdo->exec("DELETE FROM events WHERE created_by = $userId");
+        $this->pdo->exec("UPDATE clubs SET approved_by = NULL WHERE approved_by = $userId");
+        $this->pdo->exec("DELETE FROM clubs WHERE created_by = $userId");
         $stmt = $this->pdo->prepare("DELETE FROM users WHERE user_id = ?");
-        $stmt->execute([$params['id']]);
+        $stmt->execute([$userId]);
+        $this->pdo->commit();
+
         $this->redis->destroySession($this->tokenService->extractToken());
         echo json_encode(['success' => true, 'deleted' => $stmt->rowCount()]);
     }
@@ -177,6 +202,13 @@ class Authentication extends PDO_CON
     public function requireAuth()
     {
         $token = $this->tokenService->extractToken();
+        if (!$this->tokenService->authenticate($token)) {
+            $this->HandleError('Missing or invalid token', 401);
+        }
+    }
+
+    public function requireAuthToken($token)
+    {
         if (!$this->tokenService->authenticate($token)) {
             $this->HandleError('Missing or invalid token', 401);
         }
@@ -225,6 +257,86 @@ class Authentication extends PDO_CON
         echo json_encode(['blocked' => true, 'reason' => 'not_found']);
     }
 
+    public function resendVerification($params)
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $email = $data['email'] ?? '';
+
+        if (!$email) {
+            $this->HandleError('Email is required', 400);
+        }
+
+        $stmt = $this->pdo->prepare("SELECT user_id, user_email, display_name, role, school_id, is_verified FROM users WHERE user_email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            $this->HandleError('User not found', 404);
+        }
+
+        if ($user['is_verified']) {
+            $this->HandleError('Email is already verified', 400);
+        }
+
+        $newToken = $this->redis->createSession($user);
+        $this->redis->pushNotification('verify_email', [
+            'email' => $email,
+            'name' => $user['display_name'],
+            'token' => $newToken,
+        ]);
+
+        echo json_encode(['success' => true, 'message' => 'Verification email sent']);
+    }
+
+    public function verifyUser($params)
+    {
+        $frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:5000';
+
+        $token = $_GET['token'] ?? '';
+        $email = $_GET['email'] ?? '';
+
+        if (!$token || !$email) {
+            $data = json_decode(file_get_contents('php://input'), true);
+            $token = $data['token'] ?? '';
+            $email = $data['email'] ?? '';
+        }
+
+        if (!$token || !$email) {
+            $this->HandleError('Missing token or email', 400);
+        }
+
+        $user = $this->tokenService->authenticate($token);
+        if (!$user) {
+            $stmt = $this->pdo->prepare("SELECT user_id, user_email, display_name, role, school_id FROM users WHERE user_email = ?");
+            $stmt->execute([$email]);
+            $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($userData) {
+                $newToken = $this->redis->createSession($userData);
+                $this->redis->pushNotification('verify_email', [
+                    'email' => $email,
+                    'name' => $userData['display_name'],
+                    'token' => $newToken,
+                ]);
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                header("Location: $frontendUrl/login?verify=expired");
+                exit;
+            }
+            $this->HandleError('Verification link expired. A new email has been sent.', 410);
+        }
+
+        $stmt = $this->pdo->prepare('UPDATE users SET is_verified = 1 WHERE user_email = ?');
+        $stmt->execute([$email]);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            header("Location: $frontendUrl/login?verified=1&token=$token");
+            exit;
+        }
+
+        echo json_encode(['success' => true, 'token' => $token, 'message' => 'Email verified']);
+    }
+
     private function isJoinCodeValid($joinCode)
     {
         $stmt = $this->pdo->prepare("SELECT 1 FROM schools WHERE join_code = ?");
@@ -266,6 +378,7 @@ class Authentication extends PDO_CON
         if (!preg_match('/[0-9]/', $password)) return 'Password must contain at least one number';
         return null;
     }
+
 
     private function HandleError($message = '', $code = 500)
     {
