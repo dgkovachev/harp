@@ -290,7 +290,7 @@ class Authentication extends PDO_CON
 
     public function verifyUser($params)
     {
-        $frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:5000';
+        $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: 'http://localhost:5000', '/');
 
         $token = $_GET['token'] ?? '';
         $email = $_GET['email'] ?? '';

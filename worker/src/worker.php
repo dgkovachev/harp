@@ -49,7 +49,7 @@ class Worker
                 $email = $data['email'] ?? '';
                 $name = htmlspecialchars($data['name'] ?? 'User');
                 $token = $data['token'] ?? bin2hex(random_bytes(32));
-                $baseUrl = $_ENV['API_URL'] ?? 'http://localhost:8000';
+                $baseUrl = rtrim($_ENV['API_URL'] ?? 'http://localhost:8000', '/');
                 $verifyLink = "{$baseUrl}/verify?token={$token}&email=" . urlencode($email);
                 if ($email) {
                     require_once __DIR__ . '/../templates/verify.php';
