@@ -18,10 +18,11 @@ window.login = async (email, password) => {
   return data;
 };
 
-window.register = async (email, name, password, joinCode) => {
+window.register = async (email, name, password, joinCode, grade) => {
   try {
     const body = { user_email: email, display_name: name, password };
     if (joinCode) body.join_code = joinCode;
+    if (grade) body.grade = grade;
     const res = await fetch(`${API_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -86,6 +87,19 @@ window.getUser = async (id) => {
     headers: { 'Authorization': `Bearer ${window.getToken()}` }
   });
   return res.json();
+};
+
+window.updateUser = async (id, data) => {
+  try {
+    const res = await fetch(`${API_URL}/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.getToken()}` },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch {
+    return { success: false, error: 'Could not reach server' };
+  }
 };
 
 window.deleteUser = async (id) => {
@@ -326,7 +340,7 @@ export default function App() {
               const grade = form.grade?.value;
 
               if (isRegister) {
-                const result = await window.register(email, username, password, joinCode);
+                const result = await window.register(email, username, password, joinCode, grade);
                 if (!result.success) {
                   if (result.error) {
                     setFormError(result.error);

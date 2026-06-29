@@ -20,6 +20,10 @@ export default function HomePage({ onLogout }) {
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editGrade, setEditGrade] = useState('');
+  const [editMsg, setEditMsg] = useState('');
   const [tab, setTab] = useState('overview');
   const [theme, setTheme] = useState(() => localStorage.getItem('harp-theme') || 'light');
 
@@ -49,6 +53,31 @@ export default function HomePage({ onLogout }) {
   const handleLogout = async () => {
     await window.logout();
     if (onLogout) onLogout();
+  };
+
+  const startEdit = () => {
+    if (!profile) return;
+    setEditName(profile.display_name);
+    setEditGrade(profile.grade || '');
+    setEditMsg('');
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setEditMsg('');
+  };
+
+  const saveProfile = async () => {
+    if (!profile) return;
+    setEditMsg('');
+    const result = await window.updateUser(profile.user_id, { display_name: editName, grade: editGrade });
+    if (result.success) {
+      setProfile({ ...profile, display_name: editName, grade: editGrade });
+      setEditing(false);
+    } else {
+      setEditMsg(result.error || 'Failed to update');
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -191,9 +220,26 @@ export default function HomePage({ onLogout }) {
               <div className="home-card">
                 <div className="home-card-header">
                   <h2>Profile</h2>
+                  {profile && !editing && <button className="home-card-more" onClick={startEdit}>Edit</button>}
                 </div>
                 <div className="home-card-body">
-                  {profile ? (
+                  {!profile ? (
+                    <p className="home-empty">Loading profile...</p>
+                  ) : editing ? (
+                    <div className="profile-edit-form">
+                      <label>Name
+                        <input type="text" value={editName} onChange={e => setEditName(e.target.value)} />
+                      </label>
+                      <label>Grade
+                        <input type="text" value={editGrade} onChange={e => setEditGrade(e.target.value)} />
+                      </label>
+                      {editMsg && <span className="field-message form-error">{editMsg}</span>}
+                      <div className="profile-edit-actions">
+                        <button className="primary-action" onClick={saveProfile}>Save</button>
+                        <button className="home-card-more" onClick={cancelEdit}>Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="profile-details">
                       <div className="profile-row"><strong>Name</strong><span>{profile.display_name}</span></div>
                       <div className="profile-row"><strong>Email</strong><span>{profile.user_email}</span></div>
@@ -202,8 +248,6 @@ export default function HomePage({ onLogout }) {
                       <div className="profile-row"><strong>Verified</strong><span>{profile.is_verified ? 'Yes' : 'No'}</span></div>
                       <div className="profile-row"><strong>Joined</strong><span>{profile.created_at?.slice(0, 10)}</span></div>
                     </div>
-                  ) : (
-                    <p className="home-empty">Loading profile...</p>
                   )}
                 </div>
               </div>
