@@ -22,8 +22,8 @@ class Worker
     {
         $this->streamName = 'queue:notifications';
 
-        $host = $_ENV['REDIS_HOST'] ?? getenv('REDIS_HOST') ?? '127.0.0.1';
-        $port = $_ENV['REDIS_PORT'] ?? getenv('REDIS_PORT') ?? 6379;
+        $host = $_ENV['REDIS_HOST'] ?? getenv('REDIS_HOST');
+        $port = $_ENV['REDIS_PORT'] ?? getenv('REDIS_PORT');
 
         $this->redis = new RedisClient([
             'scheme' => 'tcp',
@@ -49,7 +49,8 @@ class Worker
                 $email = $data['email'] ?? '';
                 $name = htmlspecialchars($data['name'] ?? 'User');
                 $token = $data['token'] ?? bin2hex(random_bytes(32));
-                $verifyLink = "https://harpapi.smartech.bg/verify?token={$token}&email=" . urlencode($email);
+                $baseUrl = $_ENV['API_URL'] ?? 'http://localhost:8000';
+                $verifyLink = "{$baseUrl}/verify?token={$token}&email=" . urlencode($email);
                 if ($email) {
                     require_once __DIR__ . '/../templates/verify.php';
                     $htmlBody = renderVerifyEmail($name, $verifyLink);
