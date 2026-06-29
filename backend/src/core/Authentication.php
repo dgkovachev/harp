@@ -29,7 +29,7 @@ class Authentication extends PDO_CON
         $stmt->execute([$data['user_email']]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$user) {
-            $this->HandleError('Token expired',0);
+            $this->HandleError('User not found', 404);
         }
         if ($user && password_verify($data['password'] ?? '', $user['password_hash'])) {
             
@@ -117,6 +117,22 @@ class Authentication extends PDO_CON
             'token' => $token
         ]);
         echo json_encode(['success' => true, 'token' => $token, 'user_id' => $userId]);
+    }
+
+    public function getMe($params)
+    {
+        $this->requireAuth();
+        $user = $this->tokenService->getCurrentUser();
+
+        $stmt = $this->pdo->prepare("SELECT user_id, user_email, display_name, grade, role, school_id, is_verified, created_at FROM users WHERE user_id = ?");
+        $stmt->execute([$user['user_id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            echo json_encode(['success' => true, 'data' => $row]);
+        } else {
+            $this->HandleError('User not found', 404);
+        }
     }
 
     public function getUser($params)

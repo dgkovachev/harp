@@ -19,6 +19,7 @@ function SectionCard({ title, children, onMore }) {
 export default function HomePage({ onLogout }) {
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState('overview');
   const [theme, setTheme] = useState(() => localStorage.getItem('harp-theme') || 'light');
 
@@ -39,6 +40,10 @@ export default function HomePage({ onLogout }) {
     }).then(d => { if (d) setEvents(d.data || []); }).catch(() => {});
 
     window.getAnnouncements().then(d => { if (d.success) setAnnouncements(d.data || []); });
+
+    fetch(`${API_URL}/users/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(r => r.json()).then(d => { if (d.success) setProfile(d.data); }).catch(() => {});
   }, []);
 
   const handleLogout = async () => {
@@ -60,6 +65,7 @@ export default function HomePage({ onLogout }) {
           <button className={`home-nav-tab ${tab === 'events' ? 'active' : ''}`} onClick={() => setTab('events')}>Events</button>
           <button className={`home-nav-tab ${tab === 'announcements' ? 'active' : ''}`} onClick={() => setTab('announcements')}>Announcements</button>
           <button className={`home-nav-tab ${tab === 'clubs' ? 'active' : ''}`} onClick={() => setTab('clubs')}>Clubs</button>
+          <button className={`home-nav-tab ${tab === 'profile' ? 'active' : ''}`} onClick={() => setTab('profile')}>Profile</button>
         </div>
         <div className="home-nav-actions">
           <button className="home-nav-theme" onClick={toggleTheme} aria-label="Toggle theme">
@@ -163,6 +169,36 @@ export default function HomePage({ onLogout }) {
             </header>
             <div className="home-list">
               <p className="home-empty">Club features coming soon.</p>
+            </div>
+          </>
+        )}
+
+        {tab === 'profile' && (
+          <>
+            <header className="home-welcome">
+              <h1>Account</h1>
+              <p>Your profile and account settings.</p>
+            </header>
+            <div className="home-grid">
+              <div className="home-card">
+                <div className="home-card-header">
+                  <h2>Profile</h2>
+                </div>
+                <div className="home-card-body">
+                  {profile ? (
+                    <div className="profile-details">
+                      <div className="profile-row"><strong>Name</strong><span>{profile.display_name}</span></div>
+                      <div className="profile-row"><strong>Email</strong><span>{profile.user_email}</span></div>
+                      <div className="profile-row"><strong>Role</strong><span className="role-badge">{profile.role}</span></div>
+                      <div className="profile-row"><strong>Grade</strong><span>{profile.grade || '—'}</span></div>
+                      <div className="profile-row"><strong>Verified</strong><span>{profile.is_verified ? 'Yes' : 'No'}</span></div>
+                      <div className="profile-row"><strong>Joined</strong><span>{profile.created_at?.slice(0, 10)}</span></div>
+                    </div>
+                  ) : (
+                    <p className="home-empty">Loading profile...</p>
+                  )}
+                </div>
+              </div>
             </div>
           </>
         )}

@@ -3,6 +3,7 @@
 $router->post('/login', [$auth, 'login']);
 $router->post('/register', [$auth, 'register']);
 $router->post('/logout', [$auth, 'logout']);
+$router->get('/users/me', [$auth, 'getMe']);
 $router->get('/users/{id}', [$auth, 'getUser']);
 $router->put('/users/{id}', [$auth, 'updateUser']);
 $router->delete('/users/{id}', [$auth, 'deleteUser']);
