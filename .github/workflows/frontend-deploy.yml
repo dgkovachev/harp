@@ -53,6 +53,12 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Deploy nginx config
+        run: |
+          rsync -azv --rsync-path="sudo rsync" \
+            ./nginx.conf \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/Docker/frontend/nginx.conf"
+
       - name: Deploy frontend files
         run: |
           rsync -azv --delete-delay \
@@ -66,12 +72,11 @@ jobs:
 
       - name: Fix file ownership
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/frontend/html"
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "sudo chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} ~/Docker/frontend/html ~/Docker/frontend/nginx.conf"
 
-
-      - name: Restart frontend container
+      - name: Reload nginx
         run: |
-          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker restart frontend && docker compose up -d frontend"
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "docker exec frontend nginx -s reload 2>/dev/null || (docker cp ~/Docker/frontend/nginx.conf frontend:/etc/nginx/conf.d/default.conf && docker exec frontend nginx -s reload)"
 
 
 ### Old Docker deployment method (commented out)
