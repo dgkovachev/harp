@@ -149,6 +149,12 @@ export default function AdminPanel({ API_URL, getToken }) {
     loadAll();
   };
 
+  const totalConfirmedRegs = events.reduce((s, e) => s + Number(e.confirmed_count || 0), 0);
+  const totalWaitlistedRegs = events.reduce((s, e) => s + Number(e.waitlist_count || 0), 0);
+  const annCatCount = { general: 0, club: 0, event: 0 };
+  announcements.forEach(a => { annCatCount[a.category] = (annCatCount[a.category] || 0) + 1; });
+  const pendingClubs = clubs.filter(c => !c.is_approved).length;
+
   if (loading) return <div className="home-content-loading"><p>Loading admin panel...</p></div>;
 
   return (
@@ -158,6 +164,31 @@ export default function AdminPanel({ API_URL, getToken }) {
         <p>Manage events, clubs, and announcements.</p>
       </header>
       {msg && <span className="field-message form-success">{msg}</span>}
+
+      <div className="admin-stats">
+        <div className="admin-stat-card"><strong>{events.length}</strong><span>Events</span></div>
+        <div className="admin-stat-card"><strong>{clubs.length}</strong><span>Clubs{pendingClubs > 0 ? ` (${pendingClubs} pending)` : ''}</span></div>
+        <div className="admin-stat-card"><strong>{announcements.length}</strong><span>Announcements</span></div>
+        <div className="admin-stat-card"><strong>{totalConfirmedRegs}</strong><span>Confirmed</span></div>
+        <div className="admin-stat-card"><strong>{totalWaitlistedRegs}</strong><span>Waitlisted</span></div>
+      </div>
+
+      <div className="admin-breakdown">
+        <div className="admin-breakdown-item">
+          <span className="admin-breakdown-label">Announcements</span>
+          <div className="admin-bar-group">
+            {annCatCount.general > 0 && <div className="admin-bar admin-bar-general" style={{width: `${announcements.length ? (annCatCount.general/announcements.length*100) : 0}%`}}>{annCatCount.general}</div>}
+            {annCatCount.club > 0 && <div className="admin-bar admin-bar-club" style={{width: `${announcements.length ? (annCatCount.club/announcements.length*100) : 0}%`}}>{annCatCount.club}</div>}
+            {annCatCount.event > 0 && <div className="admin-bar admin-bar-event" style={{width: `${announcements.length ? (annCatCount.event/announcements.length*100) : 0}%`}}>{annCatCount.event}</div>}
+          </div>
+          <div className="admin-bar-legend">
+            <span><span className="legend-dot legend-general"></span>School ({annCatCount.general})</span>
+            <span><span className="legend-dot legend-club"></span>Club ({annCatCount.club})</span>
+            <span><span className="legend-dot legend-event"></span>Event ({annCatCount.event})</span>
+          </div>
+        </div>
+      </div>
+
       <div className="home-grid">
 
         {/* Events */}
@@ -194,7 +225,11 @@ export default function AdminPanel({ API_URL, getToken }) {
                   <div className="admin-list-row">
                     <div>
                       <strong>{ev.title}</strong>
-                      <small>{ev.event_date?.slice(0, 10)} — {ev.confirmed_count}/{ev.max_capacity} spots</small>
+                      <small>{ev.event_date?.slice(0, 10)}</small>
+                      <div className="admin-cap-bar">
+                        <div className="admin-cap-fill" style={{width: `${ev.max_capacity ? (Number(ev.confirmed_count)/Number(ev.max_capacity)*100) : 0}%`}}></div>
+                        <span className="admin-cap-label">{ev.confirmed_count || 0}/{ev.max_capacity}</span>
+                      </div>
                     </div>
                     <div className="admin-list-actions">
                       <button className="home-card-more" onClick={() => setEditingEvent(ev)}>Edit</button>
@@ -237,7 +272,10 @@ export default function AdminPanel({ API_URL, getToken }) {
                   <div className="admin-list-row">
                     <div>
                       <strong>{c.club_name}</strong>
-                      <small>{c.member_count} members — {c.is_approved ? '' : 'Pending'}</small>
+                      <div className="admin-mem-bar">
+                        <div className="admin-mem-fill" style={{width: `${Math.min(Number(c.member_count || 0) * 10, 100)}%`}}></div>
+                        <span className="admin-mem-label">{c.member_count || 0} member{(c.member_count||0) !== 1 ? 's' : ''}{!c.is_approved ? ' — Pending' : ''}</span>
+                      </div>
                     </div>
                     <div className="admin-list-actions">
                       <button className="home-card-more" onClick={() => handleViewClubMembers(c)}>Members</button>
