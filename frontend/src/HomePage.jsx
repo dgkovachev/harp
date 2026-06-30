@@ -265,7 +265,7 @@ export default function HomePage({ onLogout }) {
         confirmed_count: ev.confirmed_count + (d.status === 'confirmed' ? 1 : 0),
         waitlist_count: ev.waitlist_count + (d.status === 'waitlisted' ? 1 : 0)
       } : ev));
-      setEventMsg(d.status === 'confirmed' ? 'Registered!' : 'On waitlist!');
+      setEventMsg(d.status === 'confirmed' ? 'Registered!' : 'Sent waitlist req');
     } else {
       setEventMsg(d.error || 'Failed to join');
     }
@@ -443,12 +443,12 @@ export default function HomePage({ onLogout }) {
                       )}
                     </div>
                     <div className="home-list-actions">
-                      {!reg && <button className="btn-primary" onClick={() => handleJoinEvent(ev.event_id)} disabled={isFull}>{isFull ? 'Full' : 'Join'}</button>}
+                      {!reg && <button className="btn-primary" onClick={() => handleJoinEvent(ev.event_id)}>{isFull ? 'Join Waitlist' : 'Join'}</button>}
                       {reg && (reg.status === 'confirmed' || reg.status === 'waitlisted') && (
                         <button className="btn-danger" onClick={() => handleLeaveEvent(reg.registration_id, ev.event_id)}>Leave</button>
                       )}
                       {reg && reg.status === 'cancelled' && (
-                        <button className="btn-primary" onClick={() => handleJoinEvent(ev.event_id)} disabled={isFull}>{isFull ? 'Full' : 'Rejoin'}</button>
+                        <button className="btn-primary" onClick={() => handleJoinEvent(ev.event_id)}>{isFull ? 'Rejoin Waitlist' : 'Rejoin'}</button>
                       )}
                       {canViewMembers(ev) && (
                         <button className="btn-outline" onClick={() => handleViewMembers(ev)}>Members</button>
