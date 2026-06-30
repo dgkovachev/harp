@@ -1562,6 +1562,41 @@ button {
   line-height: 1;
 }
 
+.ai-modal-overlay {
+  z-index: 200;
+  align-items: stretch;
+  padding: 1rem;
+}
+.ai-modal-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  min-width: unset;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+.ai-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--card-border);
+}
+.ai-modal-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.ai-modal-header .modal-close {
+  position: static;
+}
+.ai-modal-iframe {
+  width: 100%;
+  height: 70vh;
+  border: none;
+}
+
 .members-table {
   width: 100%;
   border-collapse: collapse;

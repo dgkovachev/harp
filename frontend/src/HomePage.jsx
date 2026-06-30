@@ -248,13 +248,11 @@ export default function HomePage({ onLogout }) {
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
-  const handleOpenChat = () => {
-    const chatbaseId = import.meta.env.VITE_CHATBASE_ID;
+  const chatbaseId = import.meta.env.VITE_CHATBASE_ID;
+
+  useEffect(() => {
     if (!chatbaseId) return;
-    if (window.chatbase && typeof window.chatbase.open === 'function') {
-      window.chatbase.open();
-      return;
-    }
+    if (document.querySelector('script[src*="chatbase.co/embed.min.js"]')) return;
     window.embeddedChatbotConfig = { chatbotId: chatbaseId, domain: window.location.hostname };
     const s = document.createElement('script');
     s.src = 'https://www.chatbase.co/embed.min.js';
@@ -262,6 +260,14 @@ export default function HomePage({ onLogout }) {
     s.setAttribute('domain', window.location.hostname);
     s.defer = true;
     document.body.appendChild(s);
+  }, [chatbaseId]);
+
+  const [showAIChat, setShowAIChat] = useState(false);
+
+  const handleOpenChat = () => {
+    if (window.chatbase && typeof window.chatbase.open === 'function') {
+      window.chatbase.open();
+    }
   };
 
   const regMap = {};
@@ -481,11 +487,11 @@ export default function HomePage({ onLogout }) {
                 )}
               </SectionCard>
 
-              {import.meta.env.VITE_CHATBASE_ID && (
-                <div className="home-card dashboard-ai-card" onClick={handleOpenChat}>
+              {chatbaseId && (
+                <div className="home-card dashboard-ai-card" onClick={() => setShowAIChat(true)}>
                   <div className="home-card-header">
                     <h2>AI Assistant</h2>
-                    <span className="home-card-more">Chat</span>
+                    <span className="home-card-more">Open</span>
                   </div>
                   <div className="home-card-body">
                     <div className="home-event-item">
@@ -806,7 +812,26 @@ export default function HomePage({ onLogout }) {
           </>
         )}
       </div>
-      {import.meta.env.VITE_CHATBASE_ID && <button className="chat-fab" onClick={handleOpenChat}>💬</button>}
+      {chatbaseId && (
+        <>
+          <button className="chat-fab" onClick={handleOpenChat}>💬</button>
+          {showAIChat && (
+            <div className="modal-overlay ai-modal-overlay" onClick={() => setShowAIChat(false)}>
+              <div className="modal-content ai-modal-content" onClick={e => e.stopPropagation()}>
+                <div className="ai-modal-header">
+                  <h2>AI Assistant</h2>
+                  <button className="modal-close" onClick={() => setShowAIChat(false)}>×</button>
+                </div>
+                <iframe
+                  className="ai-modal-iframe"
+                  src={`https://www.chatbase.co/chatbot/${chatbaseId}`}
+                  title="AI Assistant"
+                />
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </main>
   );
 }
