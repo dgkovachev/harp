@@ -1701,6 +1701,66 @@ button {
   margin-bottom: 0.75rem;
 }
 
+/* Capacity bar */
+.admin-cap-bar {
+  position: relative;
+  height: 1.2rem;
+  background: var(--card-border);
+  border-radius: 0.3rem;
+  overflow: hidden;
+  margin-top: 0.25rem;
+  max-width: 16rem;
+}
+.admin-cap-fill {
+  height: 100%;
+  background: var(--btn-primary-bg);
+  border-radius: 0.3rem;
+  transition: width 0.4s;
+}
+.admin-cap-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--btn-primary-text);
+}
+
+/* Member bar */
+.admin-mem-bar {
+  position: relative;
+  height: 1.2rem;
+  background: var(--card-border);
+  border-radius: 0.3rem;
+  overflow: hidden;
+  margin-top: 0.25rem;
+  max-width: 16rem;
+}
+.admin-mem-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8e44ad, #af7ac5);
+  border-radius: 0.3rem;
+  transition: width 0.4s;
+}
+.admin-mem-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+}
+
 @media (max-width: 640px) {
   .home-nav-tabs {
     display: none;
