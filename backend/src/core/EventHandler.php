@@ -68,7 +68,7 @@ class EventHandler extends PDO_CON
         $stmt = $this->pdo->prepare("SELECT * FROM events WHERE event_id = ?");
         $stmt->execute([$params['id']]);
         $event = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$event || $event['created_by'] != $user['user_id']) {
+        if (!$event || ($event['created_by'] != $user['user_id'] && $user['role'] !== 'organizer')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Forbidden']);
             return;
@@ -97,7 +97,7 @@ class EventHandler extends PDO_CON
         $stmt = $this->pdo->prepare("SELECT * FROM events WHERE event_id = ?");
         $stmt->execute([$params['id']]);
         $event = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$event || $event['created_by'] != $user['user_id']) {
+        if (!$event || ($event['created_by'] != $user['user_id'] && $user['role'] !== 'organizer')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'Forbidden']);
             return;
@@ -118,17 +118,19 @@ class EventHandler extends PDO_CON
         $this->requireAuth();
         $user = $this->tokenService->getCurrentUser();
 
+        $school = $user['school_id'] ?? 0;
         if ($user['role'] === 'organizer') {
             $stmt = $this->pdo->prepare("SELECT e.*, 
                 (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status = 'confirmed') AS confirmed_count, 
                 (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status = 'waitlisted') AS waitlist_count 
-                FROM events e WHERE e.created_by = ? ORDER BY e.created_at DESC");
-            $stmt->execute([$user['user_id']]);
+                FROM events e WHERE e.school_id = ? OR e.created_by = ? ORDER BY e.created_at DESC");
+            $stmt->execute([$school, $user['user_id']]);
         } else {
-            $stmt = $this->pdo->query("SELECT e.*, 
+            $stmt = $this->pdo->prepare("SELECT e.*, 
                 (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status = 'confirmed') AS confirmed_count, 
                 (SELECT COUNT(*) FROM registrations WHERE event_id = e.event_id AND status = 'waitlisted') AS waitlist_count 
-                FROM events e ORDER BY e.event_date ASC");
+                FROM events e WHERE e.school_id = ? ORDER BY e.event_date ASC");
+            $stmt->execute([$school]);
         }
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $rows]);

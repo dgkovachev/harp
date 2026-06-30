@@ -51,8 +51,11 @@ window.createAnnouncement = async (data) => {
 };
 
 window.getAnnouncements = async () => {
+  const token = window.getToken();
   try {
-    const res = await fetch(`${API_URL}/announcements`);
+    const res = await fetch(`${API_URL}/announcements`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     return await res.json();
   } catch {
     return { success: false, data: [] };
@@ -60,8 +63,11 @@ window.getAnnouncements = async () => {
 };
 
 window.getAnnouncement = async (id) => {
+  const token = window.getToken();
   try {
-    const res = await fetch(`${API_URL}/announcement/${id}`);
+    const res = await fetch(`${API_URL}/announcement/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     return await res.json();
   } catch {
     return { success: false, error: 'Could not reach server' };
@@ -134,11 +140,6 @@ const registrationRoles = [
     id: 'student',
     title: 'Student',
     description: 'Browse events and register quickly.'
-  },
-  {
-    id: 'organizer',
-    title: 'Club Leader',
-    description: 'Create and manage school events.'
   }
 ];
 

@@ -3,6 +3,7 @@
 $router->post('/login', [$auth, 'login']);
 $router->post('/register', [$auth, 'register']);
 $router->post('/logout', [$auth, 'logout']);
+$router->post('/admin/set-role', [$auth, 'setRole']);
 $router->get('/users/me', [$auth, 'getMe']);
 $router->get('/users/{id}', [$auth, 'getUser']);
 $router->put('/users/{id}', [$auth, 'updateUser']);
@@ -31,6 +32,7 @@ $router->get('/clubs/{id}/members', [$ClubHandler, 'getClubMembers']);
 $router->get('/clubs/{id}', [$ClubHandler, 'getClub']);
 $router->post('/clubs/{id}/join', [$ClubHandler, 'joinClub']);
 $router->delete('/clubs/{id}/leave', [$ClubHandler, 'leaveClub']);
+$router->post('/clubs/{id}/assign-leader', [$ClubHandler, 'assignLeader']);
 
 $router->post('/events', [$EventHandler, 'createEvent']);
 $router->put('/events/{id}', [$EventHandler, 'updateEvent']);

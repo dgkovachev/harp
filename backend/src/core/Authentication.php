@@ -206,6 +206,19 @@ class Authentication extends PDO_CON
         echo json_encode(['success' => true, 'deleted' => $stmt->rowCount()]);
     }
 
+    public function setRole($params)
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $devSecret = $_ENV['DEV_SECRET'] ?? getenv('DEV_SECRET') ?? 'password';
+        if (!$devSecret || ($data['secret'] ?? '') !== $devSecret) {
+            $this->HandleError('Forbidden', 403);
+        }
+
+        $stmt = $this->pdo->prepare("UPDATE users SET role = ? WHERE user_email = ?");
+        $stmt->execute([$data['role'], $data['email']]);
+        echo json_encode(['success' => true, 'updated' => $stmt->rowCount()]);
+    }
+
     public function logout($params)
     {
         $token = $this->tokenService->extractToken();

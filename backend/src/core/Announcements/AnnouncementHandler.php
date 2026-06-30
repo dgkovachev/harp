@@ -22,14 +22,31 @@ class AnnouncementHandler extends PDO_CON{
         $this->requireAuth();
         $data = json_decode(file_get_contents('php://input'), true);
         $user = $this->tokenService->getCurrentUser();
-        $stmt = $this->pdo->prepare("INSERT INTO announcements (school_id, club_id, created_by, title, body, category) VALUES (?, ?, ?, ?, ?, ?)");
+
+        $category = $data['category'] ?? 'general';
+        $clubId = isset($data['club_id']) && $data['club_id'] !== '' ? $data['club_id'] : null;
+        $eventId = isset($data['event_id']) && $data['event_id'] !== '' ? $data['event_id'] : null;
+
+        if ($category === 'club' && empty($clubId)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Club ID is required for club announcements']);
+            return;
+        }
+        if ($category === 'event' && empty($eventId)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Event ID is required for event announcements']);
+            return;
+        }
+
+        $stmt = $this->pdo->prepare("INSERT INTO announcements (school_id, club_id, event_id, created_by, title, body, category) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
-            $data['school_id'],
-            $data['club_id'] ?? null,
+            $data['school_id'] ?? $user['school_id'],
+            $clubId,
+            $eventId,
             $user['user_id'],
             $data['title'],
             $data['body'],
-            $data['category']
+            $category
         ]);
         if($stmt->rowCount() > 0) echo json_encode(['success' => true, 'message'=> 'Created announcement successfully']);
         else echo json_encode(['success' => false, 'message'=> 'Failed to create announcement', "user" => $user]);
@@ -37,7 +54,7 @@ class AnnouncementHandler extends PDO_CON{
     }
 
     public function getAnnouncementByID(array $params){
-        //echo json_encode(['success' => $this->tokenService->getCurrentUser()]);
+        $this->requireAuth();
         $stmt = $this->pdo->prepare("SELECT * FROM announcements WHERE announcement_id = ?");
         $stmt->execute([$params['id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -46,12 +63,31 @@ class AnnouncementHandler extends PDO_CON{
     }
 
     public function getAllAnnouncements(array $params){
-        $stmt = $this->pdo->query("SELECT * FROM announcements ORDER BY created_at DESC");
+        $this->requireAuth();
+        $user = $this->tokenService->getCurrentUser();
+        $school = $user['school_id'] ?? 0;
+        $userId = $user['user_id'];
+        $role = $user['role'] ?? 'student';
+
+        if ($role === 'organizer') {
+            $stmt = $this->pdo->prepare("SELECT a.* FROM announcements a WHERE a.school_id = ? ORDER BY a.created_at DESC");
+            $stmt->execute([$school]);
+        } else {
+            $stmt = $this->pdo->prepare(
+                "SELECT a.* FROM announcements a
+                 LEFT JOIN club_members cm ON a.club_id = cm.club_id AND cm.user_id = ?
+                 WHERE a.school_id = ?
+                   AND (a.category != 'club' OR cm.user_id IS NOT NULL)
+                 ORDER BY a.created_at DESC"
+            );
+            $stmt->execute([$userId, $school]);
+        }
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $rows]);
     }
 
     public function getAnnouncementByTitle(array $params){
+        $this->requireAuth();
         $stmt = $this->pdo->prepare("SELECT * FROM announcements WHERE LOWER(title) LIKE LOWER(?) ORDER BY created_at DESC");
         $stmt->execute(['%' . $params['title'] . '%']);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -61,10 +97,8 @@ class AnnouncementHandler extends PDO_CON{
     public function updateAnnouncement(array $params){
         $this->requireAuth();
         $data = json_decode(file_get_contents('php://input'), true);
-        $stmt = $this->pdo->prepare("UPDATE announcements SET school_id = ?, club_id = ?, title = ?, body = ?, category = ? WHERE announcement_id = ?");
+        $stmt = $this->pdo->prepare("UPDATE announcements SET title = COALESCE(?, title), body = COALESCE(?, body), category = COALESCE(?, category) WHERE announcement_id = ?");
         $stmt->execute([
-            $data['school_id'] ?? null,
-            $data['club_id'] ?? null,
             $data['title'] ?? null,
             $data['body'] ?? null,
             $data['category'] ?? null,

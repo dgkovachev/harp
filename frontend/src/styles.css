@@ -994,6 +994,15 @@ button {
   color: #fff;
 }
 
+.home-content-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
 .home-empty {
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -1031,12 +1040,19 @@ button {
 }
 
 .home-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
   border-radius: 1rem;
   border: 1px solid var(--card-border);
   background: var(--card-bg);
   padding: 1rem 1.25rem;
   transition: background 0.35s, border-color 0.35s;
-  cursor: pointer;
+}
+
+.home-list-actions {
+  flex-shrink: 0;
 }
 
 .home-list-item:hover {
@@ -1057,6 +1073,122 @@ button {
 .home-list-item small {
   font-size: 0.8rem;
   color: var(--note-muted);
+}
+
+.admin-list-item {
+  border-bottom: 1px solid var(--section-border);
+  padding: 0.5rem 0;
+}
+
+.admin-list-item:last-child {
+  border-bottom: 0;
+}
+
+.admin-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-list-row > div:first-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.admin-list-row small {
+  font-size: 0.8rem;
+  color: var(--note-muted);
+}
+
+.admin-list-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.admin-inline-edit {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-inline-edit input,
+.admin-inline-edit textarea {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--card-border);
+  border-radius: 0.4rem;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 0.85rem;
+}
+
+.danger-action-sm {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid #e74c3c;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #e74c3c;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.danger-action-sm:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.admin-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-form input,
+.admin-form textarea,
+.admin-form select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.admin-form textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.admin-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-heading);
+}
+
+.club-member-list {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.club-member-list > p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.club-member-list .profile-row {
+  padding: 0.35rem 0;
+}
+
+.form-success {
+  color: #2ecc71;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.75rem;
 }
 
 @media (max-width: 640px) {
