@@ -149,12 +149,6 @@ export default function AdminPanel({ API_URL, getToken }) {
     loadAll();
   };
 
-  const totalConfirmedRegs = events.reduce((s, e) => s + Number(e.confirmed_count || 0), 0);
-  const totalWaitlistedRegs = events.reduce((s, e) => s + Number(e.waitlist_count || 0), 0);
-  const annCatCount = { general: 0, club: 0, event: 0 };
-  announcements.forEach(a => { annCatCount[a.category] = (annCatCount[a.category] || 0) + 1; });
-  const pendingClubs = clubs.filter(c => !c.is_approved).length;
-
   if (loading) return <div className="home-content-loading"><p>Loading admin panel...</p></div>;
 
   return (
@@ -164,30 +158,6 @@ export default function AdminPanel({ API_URL, getToken }) {
         <p>Manage events, clubs, and announcements.</p>
       </header>
       {msg && <span className="field-message form-success">{msg}</span>}
-
-      <div className="admin-stats">
-        <div className="admin-stat-card"><strong>{events.length}</strong><span>Events</span></div>
-        <div className="admin-stat-card"><strong>{clubs.length}</strong><span>Clubs{pendingClubs > 0 ? ` (${pendingClubs} pending)` : ''}</span></div>
-        <div className="admin-stat-card"><strong>{announcements.length}</strong><span>Announcements</span></div>
-        <div className="admin-stat-card"><strong>{totalConfirmedRegs}</strong><span>Confirmed</span></div>
-        <div className="admin-stat-card"><strong>{totalWaitlistedRegs}</strong><span>Waitlisted</span></div>
-      </div>
-
-      <div className="admin-breakdown">
-        <div className="admin-breakdown-item">
-          <span className="admin-breakdown-label">Announcements</span>
-          <div className="admin-bar-group">
-            {annCatCount.general > 0 && <div className="admin-bar admin-bar-general" style={{width: `${announcements.length ? (annCatCount.general/announcements.length*100) : 0}%`}}>{annCatCount.general}</div>}
-            {annCatCount.club > 0 && <div className="admin-bar admin-bar-club" style={{width: `${announcements.length ? (annCatCount.club/announcements.length*100) : 0}%`}}>{annCatCount.club}</div>}
-            {annCatCount.event > 0 && <div className="admin-bar admin-bar-event" style={{width: `${announcements.length ? (annCatCount.event/announcements.length*100) : 0}%`}}>{annCatCount.event}</div>}
-          </div>
-          <div className="admin-bar-legend">
-            <span><span className="legend-dot legend-general"></span>School ({annCatCount.general})</span>
-            <span><span className="legend-dot legend-club"></span>Club ({annCatCount.club})</span>
-            <span><span className="legend-dot legend-event"></span>Event ({annCatCount.event})</span>
-          </div>
-        </div>
-      </div>
 
       <div className="home-grid">
 
