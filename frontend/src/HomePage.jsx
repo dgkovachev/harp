@@ -666,7 +666,7 @@ export default function HomePage({ onLogout }) {
                 return (
                 <div key={a.announcement_id} className="home-list-item">
                   <div className="ann-cat-badge" data-cat={a.category}>{a.category === 'general' ? '📢 School' : a.category === 'club' ? '🏛️ Club' : '📅 Event'}</div>
-                  <div>
+                  <div className="home-list-item-content">
                     {club && <span className="event-club-badge">{club.club_name}</span>}
                     <strong>{a.title}</strong>
                     <p>{a.body}</p>
