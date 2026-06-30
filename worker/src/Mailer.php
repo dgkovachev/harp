@@ -54,6 +54,7 @@ class Mailer
         try {
             $this->mailer->SMTPDebug = 0;
             $this->mailer->setFrom('harp@smartech.bg', 'HARP Notifications');
+            $this->mailer->clearAddresses();
             $this->mailer->addAddress($to);
             $this->mailer->isHTML(true);
             $this->mailer->Subject = $subject;

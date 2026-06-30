@@ -49,6 +49,7 @@ export default function HomePage({ onLogout }) {
   const [clubMembersEvent, setClubMembersEvent] = useState(null);
   const [clubMembersData, setClubMembersData] = useState(null);
   const [clubFilter, setClubFilter] = useState(null);
+  const [announceFilter, setAnnounceFilter] = useState(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -347,9 +348,56 @@ export default function HomePage({ onLogout }) {
         {tab === 'overview' && (
           <>
             <header className="home-welcome">
-              <h1>Dashboard</h1>
-              <p>Upcoming events, announcements, and more.</p>
+              <h1>Welcome{profile ? `, ${profile.display_name}` : ''}</h1>
+              <p>Your school hub for events, clubs, and announcements.</p>
             </header>
+
+            {(() => {
+              const now = new Date();
+              const upcoming = events.filter(ev => new Date(ev.event_date) >= now).slice(0, 1);
+              const nextEv = upcoming[0];
+              return nextEv ? (
+                <div className="home-hero" onClick={() => setTab('events')}>
+                  <div className="home-hero-info">
+                    <span className="home-hero-label">Next Event</span>
+                    <h2>{nextEv.title}</h2>
+                    <p>{nextEv.description}</p>
+                    <div className="home-hero-meta">
+                      <span>📅 {new Date(nextEv.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>📍 {nextEv.location || 'TBD'}</span>
+                      <span>👥 {nextEv.confirmed_count}/{nextEv.max_capacity} spots</span>
+                    </div>
+                  </div>
+                  <div className="home-hero-countdown">
+                    <span className="home-hero-days">{Math.ceil((new Date(nextEv.event_date) - now) / (1000 * 60 * 60 * 24))}</span>
+                    <span className="home-hero-days-label">days away</span>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            <div className="home-stats">
+              <div className="home-stat-card">
+                <span className="home-stat-icon">📋</span>
+                <span className="home-stat-value">{events.length}</span>
+                <span className="home-stat-label">Events</span>
+              </div>
+              <div className="home-stat-card">
+                <span className="home-stat-icon">✅</span>
+                <span className="home-stat-value">{registrations.filter(r => r.status === 'confirmed').length}</span>
+                <span className="home-stat-label">Registered</span>
+              </div>
+              <div className="home-stat-card">
+                <span className="home-stat-icon">⏳</span>
+                <span className="home-stat-value">{registrations.filter(r => r.status === 'waitlisted').length}</span>
+                <span className="home-stat-label">Waitlisted</span>
+              </div>
+              <div className="home-stat-card">
+                <span className="home-stat-icon">🏛️</span>
+                <span className="home-stat-value">{allClubs.length}</span>
+                <span className="home-stat-label">Clubs</span>
+              </div>
+            </div>
 
             <div className="home-grid">
               <SectionCard title="Upcoming Events" onMore={() => setTab('events')}>
@@ -358,12 +406,14 @@ export default function HomePage({ onLogout }) {
                 ) : events.length === 0 ? (
                   <p className="home-empty">No upcoming events.</p>
                 ) : (
-                  events.slice(0, 3).map(ev => (
+                  events.slice(0, 3).map(ev => {
+                    const reg = regMap[ev.event_id];
+                    return (
                     <div key={ev.event_id} className="home-event-item">
                       <strong>{ev.title}</strong>
-                      <span>{ev.event_date?.slice(0, 10)} — {ev.confirmed_count}/{ev.max_capacity} registered</span>
+                      <span>{ev.event_date?.slice(0, 10)} — {ev.confirmed_count}/{ev.max_capacity} spots{reg ? ` — ${reg.status}` : ''}</span>
                     </div>
-                  ))
+                  );})
                 )}
               </SectionCard>
 
@@ -498,20 +548,42 @@ export default function HomePage({ onLogout }) {
               <h1>Announcements</h1>
               <p>School announcements and updates.</p>
             </header>
+            <div className="filter-bar">
+              <button className={`filter-btn ${announceFilter === null ? 'active' : ''}`} onClick={() => setAnnounceFilter(null)}>All</button>
+              <button className={`filter-btn ${announceFilter === 'school' ? 'active' : ''}`} onClick={() => setAnnounceFilter('school')}>School</button>
+              {allClubs.map(c => (
+                <button key={c.club_id} className={`filter-btn ${announceFilter === `club:${c.club_id}` ? 'active' : ''}`} onClick={() => setAnnounceFilter(`club:${c.club_id}`)}>{c.club_name}</button>
+              ))}
+            </div>
             <div className="home-list">
               {announcementsLoading ? (
                 <p className="home-empty">Loading announcements...</p>
               ) : announcements.length === 0 ? (
                 <p className="home-empty">No announcements.</p>
-              ) : announcements.map(a => (
+              ) : (() => {
+                const filtered = announcements.filter(a => {
+                  if (!announceFilter) return true;
+                  if (announceFilter === 'school') return a.category === 'general';
+                  if (announceFilter.startsWith('club:')) {
+                    const clubId = announceFilter.split(':')[1];
+                    return a.category === 'club' && Number(a.club_id) === Number(clubId);
+                  }
+                  return true;
+                });
+                return filtered.length === 0 ? (
+                  <p className="home-empty">No announcements found.</p>
+                ) : filtered.map(a => {
+                const club = a.category === 'club' ? allClubs.find(c => Number(c.club_id) === Number(a.club_id)) : null;
+                return (
                 <div key={a.announcement_id} className="home-list-item">
                   <div>
+                    {club && <span className="event-club-badge">{club.club_name}</span>}
                     <strong>{a.title}</strong>
                     <p>{a.body}</p>
-                    <small>{a.created_at?.slice(0, 10)}</small>
+                    <small>{a.created_at?.slice(0, 10)}{a.category !== 'general' && ` — ${a.category}`}</small>
                   </div>
                 </div>
-              ))}
+              );});})()}
             </div>
           </>
         )}
