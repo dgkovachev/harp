@@ -50,6 +50,7 @@ export default function HomePage({ onLogout }) {
   const [clubMembersData, setClubMembersData] = useState(null);
   const [clubFilter, setClubFilter] = useState(null);
   const [announceFilter, setAnnounceFilter] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -325,23 +326,40 @@ export default function HomePage({ onLogout }) {
           <span className="home-nav-title">HARP</span>
         </div>
         <div className="home-nav-tabs">
-          <button className={`home-nav-tab ${tab === 'overview' ? 'active' : ''}`} onClick={() => setTab('overview')}>Overview</button>
-          <button className={`home-nav-tab ${tab === 'events' ? 'active' : ''}`} onClick={() => setTab('events')}>Events</button>
-          <button className={`home-nav-tab ${tab === 'announcements' ? 'active' : ''}`} onClick={() => setTab('announcements')}>Announcements</button>
-          <button className={`home-nav-tab ${tab === 'clubs' ? 'active' : ''}`} onClick={() => setTab('clubs')}>Clubs</button>
-          <button className={`home-nav-tab ${tab === 'profile' ? 'active' : ''}`} onClick={() => setTab('profile')}>Profile</button>
+          <button className={`home-nav-tab ${tab === 'overview' ? 'active' : ''}`} onClick={() => { setTab('overview'); setMobileMenuOpen(false); }}>Overview</button>
+          <button className={`home-nav-tab ${tab === 'events' ? 'active' : ''}`} onClick={() => { setTab('events'); setMobileMenuOpen(false); }}>Events</button>
+          <button className={`home-nav-tab ${tab === 'announcements' ? 'active' : ''}`} onClick={() => { setTab('announcements'); setMobileMenuOpen(false); }}>Announcements</button>
+          <button className={`home-nav-tab ${tab === 'clubs' ? 'active' : ''}`} onClick={() => { setTab('clubs'); setMobileMenuOpen(false); }}>Clubs</button>
+          <button className={`home-nav-tab ${tab === 'profile' ? 'active' : ''}`} onClick={() => { setTab('profile'); setMobileMenuOpen(false); }}>Profile</button>
           {loading ? (
             <span className="home-nav-tab" style={{ opacity: 0.5, cursor: 'default' }}>Admin</span>
           ) : profile?.role === 'organizer' && (
-            <button className={`home-nav-tab ${tab === 'admin' ? 'active' : ''}`} onClick={() => setTab('admin')}>Admin</button>
+            <button className={`home-nav-tab ${tab === 'admin' ? 'active' : ''}`} onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}>Admin</button>
           )}
         </div>
         <div className="home-nav-actions">
           <button className="home-nav-theme" onClick={toggleTheme} aria-label="Toggle theme">
             {theme === 'light' ? '☾' : '☀'}
           </button>
+          <button className="home-nav-hamburger" onClick={() => setMobileMenuOpen(o => !o)} aria-label="Menu">
+            <span className={`home-nav-hamburger-line${mobileMenuOpen ? ' open' : ''}`}></span>
+            <span className={`home-nav-hamburger-line${mobileMenuOpen ? ' open' : ''}`}></span>
+            <span className={`home-nav-hamburger-line${mobileMenuOpen ? ' open' : ''}`}></span>
+          </button>
           <button className="home-nav-logout" onClick={handleLogout}>Sign Out</button>
         </div>
+        {mobileMenuOpen && (
+          <div className="home-nav-mobile">
+            <button className={`home-nav-tab${tab === 'overview' ? ' active' : ''}`} onClick={() => { setTab('overview'); setMobileMenuOpen(false); }}>Overview</button>
+            <button className={`home-nav-tab${tab === 'events' ? ' active' : ''}`} onClick={() => { setTab('events'); setMobileMenuOpen(false); }}>Events</button>
+            <button className={`home-nav-tab${tab === 'announcements' ? ' active' : ''}`} onClick={() => { setTab('announcements'); setMobileMenuOpen(false); }}>Announcements</button>
+            <button className={`home-nav-tab${tab === 'clubs' ? ' active' : ''}`} onClick={() => { setTab('clubs'); setMobileMenuOpen(false); }}>Clubs</button>
+            <button className={`home-nav-tab${tab === 'profile' ? ' active' : ''}`} onClick={() => { setTab('profile'); setMobileMenuOpen(false); }}>Profile</button>
+            {!loading && profile?.role === 'organizer' && (
+              <button className={`home-nav-tab${tab === 'admin' ? ' active' : ''}`} onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}>Admin</button>
+            )}
+          </div>
+        )}
       </nav>
 
       <div className="home-content">
