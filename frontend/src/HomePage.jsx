@@ -285,9 +285,8 @@ export default function HomePage({ onLogout }) {
     }
   };
 
-  const handleOpenAIPage = () => {
-    window.open(`https://www.chatbase.co/chatbot/${chatbaseId}`, '_blank');
-  };
+
+
 
   const regMap = {};
   registrations.forEach(r => { regMap[r.event_id] = r; });
@@ -507,10 +506,10 @@ export default function HomePage({ onLogout }) {
               </SectionCard>
 
               {chatbaseId && (
-                <div className="home-card dashboard-ai-card" onClick={handleOpenAIPage}>
+                <div className="home-card dashboard-ai-card" onClick={handleOpenQuickChat}>
                   <div className="home-card-header">
                     <h2>AI Assistant</h2>
-                    <span className="home-card-more">Open →</span>
+                    <span className="home-card-more">Chat</span>
                   </div>
                   <div className="home-card-body">
                     <div className="home-event-item">
