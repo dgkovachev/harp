@@ -40,6 +40,11 @@ export default function HomePage({ onLogout }) {
   const [myClubIds, setMyClubIds] = useState([]);
   const [clubMsg, setClubMsg] = useState('');
   const [joiningClub, setJoiningClub] = useState(null);
+  const [registrations, setRegistrations] = useState([]);
+  const [regsLoading, setRegsLoading] = useState(true);
+  const [filterClub, setFilterClub] = useState(null);
+  const [membersEvent, setMembersEvent] = useState(null);
+  const [membersData, setMembersData] = useState(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -65,6 +70,10 @@ export default function HomePage({ onLogout }) {
 
     loadClubs();
     loadMyClubs();
+
+    fetch(`${API_URL}/registrations/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(r => r.json()).then(d => { if (d.success) setRegistrations(d.data); }).catch(() => {}).finally(() => setRegsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -233,6 +242,56 @@ export default function HomePage({ onLogout }) {
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
+  const regMap = {};
+  registrations.forEach(r => { regMap[r.event_id] = r; });
+
+  const canViewMembers = (ev) => profile?.role === 'organizer' || profile?.user_id === ev.created_by;
+
+  const handleJoinEvent = async (eventId) => {
+    const res = await fetch(`${API_URL}/events/${eventId}/register`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const d = await res.json();
+    if (d.success) {
+      setRegistrations(prev => [...prev.filter(r => r.event_id !== eventId), { event_id: eventId, ...d }]);
+      setEvents(prev => prev.map(ev => ev.event_id === eventId ? {
+        ...ev,
+        confirmed_count: ev.confirmed_count + (d.status === 'confirmed' ? 1 : 0),
+        waitlist_count: ev.waitlist_count + (d.status === 'waitlisted' ? 1 : 0)
+      } : ev));
+    }
+  };
+
+  const handleLeaveEvent = async (regId, eventId) => {
+    const res = await fetch(`${API_URL}/registrations/${regId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const d = await res.json();
+    if (d.success) {
+      setRegistrations(prev => prev.map(r => r.registration_id === regId ? { ...r, status: 'cancelled' } : r));
+      setEvents(prev => prev.map(ev => ev.event_id === eventId ? {
+        ...ev,
+        confirmed_count: Math.max(0, ev.confirmed_count - 1)
+      } : ev));
+    }
+  };
+
+  const handleViewMembers = async (event) => {
+    setMembersEvent(event);
+    setMembersData(null);
+    const token = getToken();
+    const [confirmed, waitlist] = await Promise.all([
+      fetch(`${API_URL}/events/${event.event_id}/registrations`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+      fetch(`${API_URL}/events/${event.event_id}/waitlist`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
+    ]);
+    setMembersData({
+      confirmed: confirmed.data || [],
+      waitlist: waitlist.data || []
+    });
+  };
+
   return (
     <main className="home-page">
       <nav className="home-nav">
@@ -323,21 +382,87 @@ export default function HomePage({ onLogout }) {
               <h1>Events</h1>
               <p>Browse and register for school events.</p>
             </header>
+
+            <div className="filter-bar">
+              <button className={`filter-btn ${filterClub === null ? 'active' : ''}`} onClick={() => setFilterClub(null)}>All</button>
+              {events.map(ev => (
+                <button key={ev.event_id} className={`filter-btn ${filterClub === ev.event_id ? 'active' : ''}`} onClick={() => setFilterClub(ev.event_id)}>{ev.title}</button>
+              ))}
+            </div>
+
             <div className="home-list">
-              {eventsLoading ? (
+              {eventsLoading || regsLoading ? (
                 <p className="home-empty">Loading events...</p>
               ) : events.length === 0 ? (
                 <p className="home-empty">No events found.</p>
-              ) : events.map(ev => (
-                <div key={ev.event_id} className="home-list-item">
-                  <div>
-                    <strong>{ev.title}</strong>
-                    <p>{ev.description}</p>
-                    <small>{ev.event_date?.slice(0, 10)} — {ev.location} — {ev.confirmed_count}/{ev.max_capacity} spots</small>
+              ) : (() => {
+                const filtered = events.filter(ev => !filterClub || Number(ev.event_id) === Number(filterClub));
+                return filtered.length === 0 ? (
+                  <p className="home-empty">No events found.</p>
+                ) : filtered.map(ev => {
+                const reg = regMap[ev.event_id];
+                const club = allClubs.find(c => Number(c.club_id) === Number(ev.club_id));
+                const isFull = ev.max_capacity && ev.confirmed_count >= ev.max_capacity;
+                return (
+                  <div key={ev.event_id} className="home-list-item">
+                    <div className="home-list-item-content">
+                      {club && <span className="event-club-badge">{club.club_name}</span>}
+                      <strong>{ev.title}</strong>
+                      <p>{ev.description}</p>
+                      <small>{ev.event_date?.slice(0, 10)} — {ev.location} — {ev.confirmed_count}/{ev.max_capacity} spots</small>
+                      {reg && (
+                        <span className={`status-badge status-${reg.status}`}>
+                          {reg.status === 'confirmed' ? 'Confirmed' : reg.status === 'waitlisted' ? `Queued (#${reg.queue_position})` : 'Cancelled'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="home-list-actions">
+                      {!reg && <button className="btn-primary" onClick={() => handleJoinEvent(ev.event_id)} disabled={isFull}>{isFull ? 'Full' : 'Join'}</button>}
+                      {reg && (reg.status === 'confirmed' || reg.status === 'waitlisted') && (
+                        <button className="btn-danger" onClick={() => handleLeaveEvent(reg.registration_id, ev.event_id)}>Leave</button>
+                      )}
+                      {reg && reg.status === 'cancelled' && (
+                        <button className="btn-primary" onClick={() => handleJoinEvent(ev.event_id)} disabled={isFull}>{isFull ? 'Full' : 'Rejoin'}</button>
+                      )}
+                      {canViewMembers(ev) && (
+                        <button className="btn-outline" onClick={() => handleViewMembers(ev)}>Members</button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              });})()}
             </div>
+
+            {membersEvent && membersData && (
+              <div className="modal-overlay" onClick={() => { setMembersEvent(null); setMembersData(null); }}>
+                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                  <h2>{membersEvent.title} — Members</h2>
+                  <button className="modal-close" onClick={() => { setMembersEvent(null); setMembersData(null); }}>×</button>
+                  <h3 style={{ marginTop: 0 }}>Confirmed ({membersData.confirmed.length})</h3>
+                  {membersData.confirmed.length === 0 ? <p className="home-empty">None</p> : (
+                    <table className="members-table">
+                      <thead><tr><th>#</th><th>Name</th><th>Email</th></tr></thead>
+                      <tbody>
+                        {membersData.confirmed.map((m, i) => (
+                          <tr key={i}><td>{i+1}</td><td>{m.display_name}</td><td>{m.user_email}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                  <h3>Waitlist ({membersData.waitlist.length})</h3>
+                  {membersData.waitlist.length === 0 ? <p className="home-empty">None</p> : (
+                    <table className="members-table">
+                      <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Queue</th></tr></thead>
+                      <tbody>
+                        {membersData.waitlist.map((m, i) => (
+                          <tr key={i}><td>{i+1}</td><td>{m.display_name}</td><td>{m.user_email}</td><td>#{m.queue_position}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         )}
 
