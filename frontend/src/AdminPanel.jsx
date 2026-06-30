@@ -18,6 +18,8 @@ export default function AdminPanel({ API_URL, getToken }) {
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingClub, setEditingClub] = useState(null);
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+  const [viewClubMembers, setViewClubMembers] = useState(null);
+  const [viewClubMembersData, setViewClubMembersData] = useState(null);
 
   useEffect(() => {
     loadAll();
@@ -133,6 +135,20 @@ export default function AdminPanel({ API_URL, getToken }) {
     loadClubMembers(selectedClub);
   };
 
+  const handleViewClubMembers = async (club) => {
+    setViewClubMembers(club);
+    setViewClubMembersData(null);
+    const d = await api(`${API_URL}/clubs/${club.club_id}/members`);
+    if (d.success) setViewClubMembersData(d.data || []);
+  };
+
+  const handleLeaveClub = async (clubId) => {
+    setMsg('');
+    const d = await api(`${API_URL}/clubs/${clubId}/leave`, { method: 'DELETE' });
+    setMsg(d.success ? 'Left club' : (d.error || 'Failed to leave'));
+    loadAll();
+  };
+
   if (loading) return <div className="home-content-loading"><p>Loading admin panel...</p></div>;
 
   return (
@@ -224,6 +240,8 @@ export default function AdminPanel({ API_URL, getToken }) {
                       <small>{c.member_count} members — {c.is_approved ? '' : 'Pending'}</small>
                     </div>
                     <div className="admin-list-actions">
+                      <button className="home-card-more" onClick={() => handleViewClubMembers(c)}>Members</button>
+                      <button className="home-card-more" style={{color:'#e74c3c'}} onClick={() => handleLeaveClub(c.club_id)}>Leave</button>
                       <button className="home-card-more" onClick={() => setEditingClub(c)}>Edit</button>
                       <button className="danger-action-sm" onClick={() => handleDeleteClub(c.club_id)}>Delete</button>
                     </div>
@@ -321,6 +339,29 @@ export default function AdminPanel({ API_URL, getToken }) {
         </div>
 
       </div>
+
+      {viewClubMembers && (
+        <div className="modal-overlay" onClick={() => { setViewClubMembers(null); setViewClubMembersData(null); }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>{viewClubMembers.club_name} — Members</h2>
+            <button className="modal-close" onClick={() => { setViewClubMembers(null); setViewClubMembersData(null); }}>×</button>
+            {!viewClubMembersData ? (
+              <p className="home-empty">Loading...</p>
+            ) : viewClubMembersData.length === 0 ? (
+              <p className="home-empty">No members.</p>
+            ) : (
+              <table className="members-table">
+                <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+                <tbody>
+                  {viewClubMembersData.map((m, i) => (
+                    <tr key={m.user_id}><td>{i+1}</td><td>{m.display_name}</td><td>{m.user_email}</td><td>{m.role}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

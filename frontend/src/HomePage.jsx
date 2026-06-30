@@ -45,6 +45,10 @@ export default function HomePage({ onLogout }) {
   const [filterClub, setFilterClub] = useState(null);
   const [membersEvent, setMembersEvent] = useState(null);
   const [membersData, setMembersData] = useState(null);
+  const [eventMsg, setEventMsg] = useState('');
+  const [clubMembersEvent, setClubMembersEvent] = useState(null);
+  const [clubMembersData, setClubMembersData] = useState(null);
+  const [clubFilter, setClubFilter] = useState(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -248,6 +252,7 @@ export default function HomePage({ onLogout }) {
   const canViewMembers = (ev) => profile?.role === 'organizer' || profile?.user_id === ev.created_by;
 
   const handleJoinEvent = async (eventId) => {
+    setEventMsg('');
     const res = await fetch(`${API_URL}/events/${eventId}/register`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -260,10 +265,15 @@ export default function HomePage({ onLogout }) {
         confirmed_count: ev.confirmed_count + (d.status === 'confirmed' ? 1 : 0),
         waitlist_count: ev.waitlist_count + (d.status === 'waitlisted' ? 1 : 0)
       } : ev));
+      setEventMsg(d.status === 'confirmed' ? 'Registered!' : 'On waitlist!');
+    } else {
+      setEventMsg(d.error || 'Failed to join');
     }
+    setTimeout(() => setEventMsg(''), 3000);
   };
 
   const handleLeaveEvent = async (regId, eventId) => {
+    setEventMsg('Leave request sent, you will be leaving in a bit…');
     const res = await fetch(`${API_URL}/registrations/${regId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -275,7 +285,11 @@ export default function HomePage({ onLogout }) {
         ...ev,
         confirmed_count: Math.max(0, ev.confirmed_count - 1)
       } : ev));
+      setEventMsg('Left event');
+    } else {
+      setEventMsg(d.error || 'Failed to leave');
     }
+    setTimeout(() => setEventMsg(''), 3000);
   };
 
   const handleViewMembers = async (event) => {
@@ -290,6 +304,16 @@ export default function HomePage({ onLogout }) {
       confirmed: confirmed.data || [],
       waitlist: waitlist.data || []
     });
+  };
+
+  const handleViewClubMembers = async (club) => {
+    setClubMembersEvent(club);
+    setClubMembersData(null);
+    const res = await fetch(`${API_URL}/clubs/${club.club_id}/members`, {
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    const d = await res.json();
+    if (d.success) setClubMembersData(d.data || []);
   };
 
   return (
@@ -382,6 +406,8 @@ export default function HomePage({ onLogout }) {
               <h1>Events</h1>
               <p>Browse and register for school events.</p>
             </header>
+
+            {eventMsg && <span className="field-message form-success">{eventMsg}</span>}
 
             <div className="filter-bar">
               <button className={`filter-btn ${filterClub === null ? 'active' : ''}`} onClick={() => setFilterClub(null)}>All</button>
@@ -497,12 +523,24 @@ export default function HomePage({ onLogout }) {
               <p>Discover and join school clubs.</p>
             </header>
             {clubMsg && <span className="field-message form-success">{clubMsg}</span>}
+
+            <div className="filter-bar">
+              <button className={`filter-btn ${clubFilter === null ? 'active' : ''}`} onClick={() => setClubFilter(null)}>All</button>
+              {allClubs.map(c => (
+                <button key={c.club_id} className={`filter-btn ${clubFilter === c.club_id ? 'active' : ''}`} onClick={() => setClubFilter(c.club_id)}>{c.club_name}</button>
+              ))}
+            </div>
+
             <div className="home-list">
               {clubsLoading ? (
                 <p className="home-empty">Loading clubs...</p>
               ) : allClubs.length === 0 ? (
                 <p className="home-empty">No clubs yet.</p>
-              ) : allClubs.map(c => {
+              ) : (() => {
+                const filtered = allClubs.filter(c => !clubFilter || Number(c.club_id) === Number(clubFilter));
+                return filtered.length === 0 ? (
+                  <p className="home-empty">No clubs found.</p>
+                ) : filtered.map(c => {
                 const isMember = myClubIds.includes(c.club_id);
                 const isPending = !c.is_approved;
                 return (
@@ -516,17 +554,46 @@ export default function HomePage({ onLogout }) {
                       {joiningClub === c.club_id ? (
                         <span className="home-empty">...</span>
                       ) : isMember ? (
-                        <button className="home-card-more" style={{color:'#e74c3c'}} onClick={() => handleLeaveClub(c.club_id)}>Leave</button>
+                        <>
+                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>Members</button>
+                          <button className="home-card-more" style={{color:'#e74c3c'}} onClick={() => handleLeaveClub(c.club_id)}>Leave</button>
+                        </>
                       ) : isPending ? (
                         <span className="home-empty">Pending</span>
                       ) : (
-                        <button className="home-card-more" onClick={() => handleJoinClub(c.club_id)}>Join</button>
+                        <>
+                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>Members</button>
+                          <button className="home-card-more" onClick={() => handleJoinClub(c.club_id)}>Join</button>
+                        </>
                       )}
                     </div>
                   </div>
                 );
-              })}
+              });})()}
             </div>
+
+            {clubMembersEvent && (
+              <div className="modal-overlay" onClick={() => { setClubMembersEvent(null); setClubMembersData(null); }}>
+                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                  <h2>{clubMembersEvent.club_name} — Members</h2>
+                  <button className="modal-close" onClick={() => { setClubMembersEvent(null); setClubMembersData(null); }}>×</button>
+                  {!clubMembersData ? (
+                    <p className="home-empty">Loading...</p>
+                  ) : clubMembersData.length === 0 ? (
+                    <p className="home-empty">No members.</p>
+                  ) : (
+                    <table className="members-table">
+                      <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+                      <tbody>
+                        {clubMembersData.map((m, i) => (
+                          <tr key={m.user_id}><td>{i+1}</td><td>{m.display_name}</td><td>{m.user_email}</td><td>{m.role}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         )}
 
