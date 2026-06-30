@@ -842,6 +842,60 @@ button {
   color: var(--text-heading);
 }
 
+.home-nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.4rem;
+  transition: background 0.2s;
+}
+.home-nav-hamburger:hover {
+  background: var(--tab-bar-bg);
+}
+.home-nav-hamburger-line {
+  display: block;
+  height: 2px;
+  background: var(--text-secondary);
+  border-radius: 1px;
+  transition: transform 0.25s, opacity 0.25s;
+}
+.home-nav-hamburger-line.open:nth-child(1) {
+  transform: rotate(45deg) translate(2px, 2px);
+}
+.home-nav-hamburger-line.open:nth-child(2) {
+  opacity: 0;
+}
+.home-nav-hamburger-line.open:nth-child(3) {
+  transform: rotate(-45deg) translate(2px, -2px);
+}
+
+.home-nav-mobile {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1.5rem 1.25rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px var(--card-shadow);
+  z-index: 9;
+}
+.home-nav-mobile .home-nav-tab {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+}
+
 .home-content {
   max-width: 900px;
   margin: 0 auto;
@@ -1492,6 +1546,18 @@ button {
 @media (max-width: 640px) {
   .home-nav-tabs {
     display: none;
+  }
+
+  .home-nav-logout {
+    display: none;
+  }
+
+  .home-nav-hamburger {
+    display: flex;
+  }
+
+  .home-nav-mobile {
+    display: flex;
   }
 
   .home-grid {
