@@ -497,16 +497,32 @@ export default function HomePage({ onLogout }) {
                 const reg = regMap[ev.event_id];
                 const club = allClubs.find(c => Number(c.club_id) === Number(ev.club_id));
                 const isFull = ev.max_capacity && ev.confirmed_count >= ev.max_capacity;
+                const pct = ev.max_capacity ? Math.round((ev.confirmed_count / ev.max_capacity) * 100) : 0;
+                const evDate = new Date(ev.event_date);
+                const now = new Date();
+                const daysUntil = Math.ceil((evDate - now) / (1000 * 60 * 60 * 24));
+                const dateLabel = daysUntil < 0 ? 'Past' : daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil}d`;
                 return (
                   <div key={ev.event_id} className="home-list-item">
+                    <div className="evt-date-badge" data-theme={daysUntil < 0 ? 'past' : daysUntil <= 3 ? 'soon' : 'upcoming'}>
+                      <span className="evt-date-day">{evDate.getDate()}</span>
+                      <span className="evt-date-mon">{evDate.toLocaleString('en', { month: 'short' })}</span>
+                      <span className="evt-date-label">{dateLabel}</span>
+                    </div>
                     <div className="home-list-item-content">
                       {club && <span className="event-club-badge">{club.club_name}</span>}
                       <strong>{ev.title}</strong>
                       <p>{ev.description}</p>
-                      <small>{ev.event_date?.slice(0, 10)} — {ev.location} — {ev.confirmed_count}/{ev.max_capacity} spots</small>
+                      <small>{ev.location && `📍 ${ev.location}`}</small>
+                      <div className="evt-cap-bar">
+                        <div className="evt-cap-track">
+                          <div className="evt-cap-fill" style={{ width: `${Math.min(pct, 100)}%` }}></div>
+                        </div>
+                        <span className="evt-cap-label">{ev.confirmed_count}/{ev.max_capacity}</span>
+                      </div>
                       {reg && (
                         <span className={`status-badge status-${reg.status}`}>
-                          {reg.status === 'confirmed' ? 'Confirmed' : reg.status === 'waitlisted' ? `Queued (#${reg.queue_position})` : 'Cancelled'}
+                          {reg.status === 'confirmed' ? '✅ Confirmed' : reg.status === 'waitlisted' ? `⏳ Queued (#${reg.queue_position})` : 'Cancelled'}
                         </span>
                       )}
                     </div>
@@ -594,11 +610,12 @@ export default function HomePage({ onLogout }) {
                 const club = a.category === 'club' ? allClubs.find(c => Number(c.club_id) === Number(a.club_id)) : null;
                 return (
                 <div key={a.announcement_id} className="home-list-item">
+                  <div className="ann-cat-badge" data-cat={a.category}>{a.category === 'general' ? '📢 School' : a.category === 'club' ? '🏛️ Club' : '📅 Event'}</div>
                   <div>
                     {club && <span className="event-club-badge">{club.club_name}</span>}
                     <strong>{a.title}</strong>
                     <p>{a.body}</p>
-                    <small>{a.created_at?.slice(0, 10)}{a.category !== 'general' && ` — ${a.category}`}</small>
+                    <small>{a.created_at?.slice(0, 10)}</small>
                   </div>
                 </div>
               );});})()}
@@ -635,24 +652,31 @@ export default function HomePage({ onLogout }) {
                 const isPending = !c.is_approved;
                 return (
                   <div key={c.club_id} className="home-list-item">
+                    <div className="club-icon">{c.club_name.charAt(0).toUpperCase()}</div>
                     <div>
                       <strong>{c.club_name}</strong>
                       <p>{c.description || 'No description'}</p>
-                      <small>{c.member_count} members — {c.owner_name || 'Unknown'}{isPending ? ' — Pending approval' : ''}</small>
+                      <div className="evt-cap-bar">
+                        <div className="evt-cap-track">
+                          <div className="evt-cap-fill club-fill" style={{ width: `${Math.min(c.member_count * 5, 100)}%` }}></div>
+                        </div>
+                        <span className="evt-cap-label">{c.member_count} members</span>
+                      </div>
+                      <small>{c.owner_name || 'Unknown'}{isPending ? ' — ⏳ Pending approval' : ''}</small>
                     </div>
                     <div className="home-list-actions">
                       {joiningClub === c.club_id ? (
                         <span className="home-empty">...</span>
                       ) : isMember ? (
                         <>
-                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>Members</button>
+                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>👥</button>
                           <button className="home-card-more" style={{color:'#e74c3c'}} onClick={() => handleLeaveClub(c.club_id)}>Leave</button>
                         </>
                       ) : isPending ? (
-                        <span className="home-empty">Pending</span>
+                        <span className="home-empty">⏳ Pending</span>
                       ) : (
                         <>
-                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>Members</button>
+                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>👥</button>
                           <button className="home-card-more" onClick={() => handleJoinClub(c.club_id)}>Join</button>
                         </>
                       )}
