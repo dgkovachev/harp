@@ -669,14 +669,14 @@ export default function HomePage({ onLogout }) {
                         <span className="home-empty">...</span>
                       ) : isMember ? (
                         <>
-                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>👥</button>
+                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>Members</button>
                           <button className="home-card-more" style={{color:'#e74c3c'}} onClick={() => handleLeaveClub(c.club_id)}>Leave</button>
                         </>
                       ) : isPending ? (
                         <span className="home-empty">⏳ Pending</span>
                       ) : (
                         <>
-                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>👥</button>
+                          <button className="btn-outline" onClick={() => handleViewClubMembers(c)}>Members</button>
                           <button className="home-card-more" onClick={() => handleJoinClub(c.club_id)}>Join</button>
                         </>
                       )}
