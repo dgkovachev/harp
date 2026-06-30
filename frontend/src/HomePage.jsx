@@ -252,22 +252,41 @@ export default function HomePage({ onLogout }) {
 
   useEffect(() => {
     if (!chatbaseId) return;
-    if (document.querySelector('script[src*="chatbase.co/embed.min.js"]')) return;
-    window.embeddedChatbotConfig = { chatbotId: chatbaseId, domain: window.location.hostname };
-    const s = document.createElement('script');
-    s.src = 'https://www.chatbase.co/embed.min.js';
-    s.setAttribute('chatbotId', chatbaseId);
-    s.setAttribute('domain', window.location.hostname);
-    s.defer = true;
-    document.body.appendChild(s);
+    if (document.getElementById(chatbaseId)) return;
+    if (!window.chatbase || window.chatbase('getState') !== 'initialized') {
+      window.chatbase = (...args) => {
+        if (!window.chatbase.q) window.chatbase.q = [];
+        window.chatbase.q.push(args);
+      };
+      window.chatbase = new Proxy(window.chatbase, {
+        get(target, prop) {
+          if (prop === 'q') return target.q;
+          return (...args) => target(prop, ...args);
+        }
+      });
+    }
+    const onLoad = () => {
+      const s = document.createElement('script');
+      s.src = 'https://www.chatbase.co/embed.min.js';
+      s.id = chatbaseId;
+      s.domain = 'www.chatbase.co';
+      document.body.appendChild(s);
+    };
+    if (document.readyState === 'complete') {
+      onLoad();
+    } else {
+      window.addEventListener('load', onLoad);
+    }
   }, [chatbaseId]);
 
-  const [showAIChat, setShowAIChat] = useState(false);
-
-  const handleOpenChat = () => {
+  const handleOpenQuickChat = () => {
     if (window.chatbase && typeof window.chatbase.open === 'function') {
       window.chatbase.open();
     }
+  };
+
+  const handleOpenAIPage = () => {
+    window.open(`https://www.chatbase.co/chatbot/${chatbaseId}`, '_blank');
   };
 
   const regMap = {};
@@ -488,10 +507,10 @@ export default function HomePage({ onLogout }) {
               </SectionCard>
 
               {chatbaseId && (
-                <div className="home-card dashboard-ai-card" onClick={() => setShowAIChat(true)}>
+                <div className="home-card dashboard-ai-card" onClick={handleOpenAIPage}>
                   <div className="home-card-header">
                     <h2>AI Assistant</h2>
-                    <span className="home-card-more">Open</span>
+                    <span className="home-card-more">Open →</span>
                   </div>
                   <div className="home-card-body">
                     <div className="home-event-item">
@@ -812,26 +831,7 @@ export default function HomePage({ onLogout }) {
           </>
         )}
       </div>
-      {chatbaseId && (
-        <>
-          <button className="chat-fab" onClick={handleOpenChat}>💬</button>
-          {showAIChat && (
-            <div className="modal-overlay ai-modal-overlay" onClick={() => setShowAIChat(false)}>
-              <div className="modal-content ai-modal-content" onClick={e => e.stopPropagation()}>
-                <div className="ai-modal-header">
-                  <h2>AI Assistant</h2>
-                  <button className="modal-close" onClick={() => setShowAIChat(false)}>×</button>
-                </div>
-                <iframe
-                  className="ai-modal-iframe"
-                  src={`https://www.chatbase.co/chatbot/${chatbaseId}`}
-                  title="AI Assistant"
-                />
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      {chatbaseId && <button className="chat-fab" onClick={handleOpenQuickChat}>💬</button>}
     </main>
   );
 }
