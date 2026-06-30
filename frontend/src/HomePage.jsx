@@ -651,9 +651,9 @@ export default function HomePage({ onLogout }) {
                 const isMember = myClubIds.includes(c.club_id);
                 const isPending = !c.is_approved;
                 return (
-                  <div key={c.club_id} className="home-list-item">
+                    <div key={c.club_id} className="home-list-item">
                     <div className="club-icon">{c.club_name.charAt(0).toUpperCase()}</div>
-                    <div>
+                    <div className="home-list-item-content">
                       <strong>{c.club_name}</strong>
                       <p>{c.description || 'No description'}</p>
                       <div className="evt-cap-bar">

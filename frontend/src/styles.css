@@ -1233,6 +1233,7 @@ button {
   flex-direction: column;
   gap: 0.3rem;
   min-width: 0;
+  flex: 1;
 }
 
 .event-club-badge {
@@ -1313,6 +1314,132 @@ button {
 
 .filter-btn:hover:not(.active) {
   background: var(--tab-bar-bg);
+}
+
+/* Event date badge */
+.evt-date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 3.2rem;
+  padding: 0.4rem 0.2rem;
+  border-radius: 0.75rem;
+  background: var(--tab-bar-bg);
+  border: 1px solid var(--card-border);
+}
+.evt-date-badge[data-theme="soon"] {
+  background: rgba(46, 204, 113, 0.1);
+  border-color: rgba(46, 204, 113, 0.3);
+}
+.evt-date-badge[data-theme="past"] {
+  opacity: 0.5;
+}
+.evt-date-day {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text-heading);
+}
+.evt-date-mon {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.evt-date-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+}
+.evt-date-badge[data-theme="soon"] .evt-date-label {
+  color: #27ae60;
+}
+
+/* Capacity bar */
+.evt-cap-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.evt-cap-track {
+  flex: 1;
+  max-width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--tab-bar-bg);
+  overflow: hidden;
+}
+.evt-cap-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2ecc71, #27ae60);
+  transition: width 0.4s ease;
+}
+.evt-cap-fill.club-fill {
+  background: linear-gradient(90deg, var(--brand-color), #e5a900);
+}
+[data-theme="dark"] .evt-cap-fill {
+  background: linear-gradient(90deg, #7a5ae0, #9b7cf0);
+}
+[data-theme="dark"] .evt-cap-fill.club-fill {
+  background: linear-gradient(90deg, #7a5ae0, #9b7cf0);
+}
+.evt-cap-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Club avatar */
+.club-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: var(--brand-bg);
+  color: var(--brand-color);
+  font-weight: 800;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Announcement category badge */
+.ann-cat-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.4rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ann-cat-badge[data-cat="general"] {
+  background: rgba(52, 152, 219, 0.12);
+  color: #2980b9;
+}
+.ann-cat-badge[data-cat="club"] {
+  background: rgba(155, 89, 182, 0.12);
+  color: #8e44ad;
+}
+.ann-cat-badge[data-cat="event"] {
+  background: rgba(46, 204, 113, 0.12);
+  color: #27ae60;
+}
+[data-theme="dark"] .ann-cat-badge[data-cat="general"] {
+  background: rgba(52, 152, 219, 0.2);
+  color: #5dade2;
+}
+[data-theme="dark"] .ann-cat-badge[data-cat="club"] {
+  background: rgba(155, 89, 182, 0.2);
+  color: #af7ac5;
+}
+[data-theme="dark"] .ann-cat-badge[data-cat="event"] {
+  background: rgba(46, 204, 113, 0.2);
+  color: #58d68d;
 }
 
 .btn-primary, .btn-danger, .btn-outline {
