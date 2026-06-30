@@ -248,6 +248,22 @@ export default function HomePage({ onLogout }) {
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
+  const handleOpenChat = () => {
+    const chatbaseId = import.meta.env.VITE_CHATBASE_ID;
+    if (!chatbaseId) return;
+    if (window.chatbase && typeof window.chatbase.open === 'function') {
+      window.chatbase.open();
+      return;
+    }
+    window.embeddedChatbotConfig = { chatbotId: chatbaseId, domain: window.location.hostname };
+    const s = document.createElement('script');
+    s.src = 'https://www.chatbase.co/embed.min.js';
+    s.setAttribute('chatbotId', chatbaseId);
+    s.setAttribute('domain', window.location.hostname);
+    s.defer = true;
+    document.body.appendChild(s);
+  };
+
   const regMap = {};
   registrations.forEach(r => { regMap[r.event_id] = r; });
 
@@ -464,6 +480,21 @@ export default function HomePage({ onLogout }) {
                   ))
                 )}
               </SectionCard>
+
+              {import.meta.env.VITE_CHATBASE_ID && (
+                <div className="home-card dashboard-ai-card" onClick={handleOpenChat}>
+                  <div className="home-card-header">
+                    <h2>AI Assistant</h2>
+                    <span className="home-card-more">Chat</span>
+                  </div>
+                  <div className="home-card-body">
+                    <div className="home-event-item">
+                      <strong>Ask me anything about HARP</strong>
+                      <span>Events, clubs, announcements — I'm here to help</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -775,6 +806,7 @@ export default function HomePage({ onLogout }) {
           </>
         )}
       </div>
+      {import.meta.env.VITE_CHATBASE_ID && <button className="chat-fab" onClick={handleOpenChat}>💬</button>}
     </main>
   );
 }
