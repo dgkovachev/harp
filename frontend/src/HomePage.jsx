@@ -248,7 +248,7 @@ export default function HomePage({ onLogout }) {
 
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
-  const chatbaseId = import.meta.env.VITE_CHATBASE_ID;
+  const chatbaseId = import.meta.env.VITE_CHATBASE_ID || '3jGIxeqbpvr7HCN605FGK';
 
   useEffect(() => {
     if (!chatbaseId) return;
