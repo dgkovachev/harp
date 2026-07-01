@@ -926,6 +926,11 @@ button {
   text-align: left;
   padding: 0.75rem 1rem;
 }
+.home-nav-mobile .home-nav-tab-signout {
+  color: #e74c3c;
+  border-top: 1px solid var(--card-border);
+  margin-top: 0.5rem;
+}
 
 .home-content {
   max-width: 900px;

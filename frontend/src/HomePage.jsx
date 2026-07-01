@@ -398,6 +398,7 @@ export default function HomePage({ onLogout }) {
             {!loading && profile?.role === 'organizer' && (
               <button className={`home-nav-tab${tab === 'admin' ? ' active' : ''}`} onClick={() => { setTab('admin'); setMobileMenuOpen(false); }}>Admin</button>
             )}
+            <button className="home-nav-tab home-nav-tab-signout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>Sign Out</button>
           </div>
         )}
       </nav>
