@@ -29,7 +29,6 @@ window.register = async (email, name, password, joinCode, grade) => {
       body: JSON.stringify(body)
     });
     const data = await res.json();
-    if (data.token) localStorage.setItem('harp_token', data.token);
     return data;
   } catch {
     return { success: false, error: 'Could not reach server' };
@@ -71,6 +70,19 @@ window.getAnnouncement = async (id) => {
     return await res.json();
   } catch {
     return { success: false, error: 'Could not reach server' };
+  }
+};
+
+window.markAnnouncementRead = async (id) => {
+  const token = window.getToken();
+  try {
+    const res = await fetch(`${API_URL}/announcement/${id}/read`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return await res.json();
+  } catch {
+    return { success: false };
   }
 };
 
@@ -351,7 +363,10 @@ export default function App() {
                     }
                   }
                 } else {
-                  setSuccessMessage('Account created! Check your email to verify.');
+                  localStorage.removeItem('harp_token');
+                  setMode('sign-in');
+                  setFormError('');
+                  setSuccessMessage('Account created! Check your email to verify, then log in.');
                 }
               } else {
                 const result = await window.login(username, password);

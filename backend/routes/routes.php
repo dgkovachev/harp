@@ -19,6 +19,8 @@ $router->get('/announcements', [$AnnouncementHandler, 'getAllAnnouncements']);
 $router->get('/announcements/search/{title}', [$AnnouncementHandler, 'getAnnouncementByTitle']);
 $router->put('/announcement/{id}', [$AnnouncementHandler, 'updateAnnouncement']);
 $router->delete('/announcement/{id}', [$AnnouncementHandler, 'deleteAnnouncement']);
+$router->post('/announcement/{id}/read', [$AnnouncementHandler, 'markAnnouncementAsRead']);
+$router->post('/announcement/{id}/read', [$AnnouncementHandler, 'markAnnouncementAsRead']);
 
 $router->post('/clubs', [$ClubHandler, 'createClub']);
 $router->put('/clubs/{id}', [$ClubHandler, 'updateClub']);

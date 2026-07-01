@@ -28,6 +28,7 @@ export default function HomePage({ onLogout }) {
   const [editGrade, setEditGrade] = useState('');
   const [editMsg, setEditMsg] = useState('');
   const [tab, setTab] = useState('overview');
+  const [expandedAnnouncement, setExpandedAnnouncement] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('harp-theme') || 'light');
   const [loading, setLoading] = useState(true);
   const [adminMsg, setAdminMsg] = useState('');
@@ -355,8 +356,26 @@ export default function HomePage({ onLogout }) {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     });
     const d = await res.json();
-    if (d.success) setClubMembersData(d.data || []);
+      if (d.success) setClubMembersData(d.data || []);
   };
+
+  const handleMarkRead = async (id) => {
+    setExpandedAnnouncement(expandedAnnouncement === id ? null : id);
+    const d = await window.markAnnouncementRead(id);
+    if (d.success) {
+      setAnnouncements(prev => prev.map(a => a.announcement_id === id ? { ...a, is_read: 1 } : a));
+    }
+  };
+
+  const handleOverviewClick = (id) => {
+    setExpandedAnnouncement(id);
+    setTab('announcements');
+    window.markAnnouncementRead(id).then(d => {
+      if (d.success) setAnnouncements(prev => prev.map(a => a.announcement_id === id ? { ...a, is_read: 1 } : a));
+    });
+  };
+
+  const unreadCount = announcements.filter(a => !a.is_read).length;
 
   return (
     <main className="home-page">
@@ -368,7 +387,9 @@ export default function HomePage({ onLogout }) {
         <div className="home-nav-tabs">
           <button className={`home-nav-tab ${tab === 'overview' ? 'active' : ''}`} onClick={() => { setTab('overview'); setMobileMenuOpen(false); }}>Overview</button>
           <button className={`home-nav-tab ${tab === 'events' ? 'active' : ''}`} onClick={() => { setTab('events'); setMobileMenuOpen(false); }}>Events</button>
-          <button className={`home-nav-tab ${tab === 'announcements' ? 'active' : ''}`} onClick={() => { setTab('announcements'); setMobileMenuOpen(false); }}>Announcements</button>
+          <button className={`home-nav-tab ${tab === 'announcements' ? 'active' : ''}`} onClick={() => { setTab('announcements'); setMobileMenuOpen(false); }}>
+            Announcements{unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}
+          </button>
           <button className={`home-nav-tab ${tab === 'clubs' ? 'active' : ''}`} onClick={() => { setTab('clubs'); setMobileMenuOpen(false); }}>Clubs</button>
           <button className={`home-nav-tab ${tab === 'profile' ? 'active' : ''}`} onClick={() => { setTab('profile'); setMobileMenuOpen(false); }}>Profile</button>
           {loading ? (
@@ -483,7 +504,7 @@ export default function HomePage({ onLogout }) {
                   <p className="home-empty">No announcements yet.</p>
                 ) : (
                   announcements.slice(0, 3).map(a => (
-                    <div key={a.announcement_id} className="home-announcement-item">
+                    <div key={a.announcement_id} className={'home-announcement-item' + (!a.is_read ? ' unread' : '')} onClick={() => handleOverviewClick(a.announcement_id)}>
                       <strong>{a.title}</strong>
                       <span>{a.body?.slice(0, 80)}...</span>
                     </div>
@@ -665,13 +686,20 @@ export default function HomePage({ onLogout }) {
                 ) : filtered.map(a => {
                 const club = a.category === 'club' ? allClubs.find(c => Number(c.club_id) === Number(a.club_id)) : null;
                 return (
-                <div key={a.announcement_id} className="home-list-item">
-                  <div className="ann-cat-badge" data-cat={a.category}>{a.category === 'general' ? '📢 School' : a.category === 'club' ? '🏛️ Club' : '📅 Event'}</div>
+                <div key={a.announcement_id} className={'home-list-item' + (!a.is_read ? ' unread' : '') + (expandedAnnouncement === a.announcement_id ? ' expanded' : '')} onClick={() => handleMarkRead(a.announcement_id)}>
+                  <div className="ann-cat-badge" data-cat={a.category}>{a.category === 'general' ? 'School' : a.category === 'club' ? 'Club' : 'Event'}</div>
                   <div className="home-list-item-content">
                     {club && <span className="event-club-badge">{club.club_name}</span>}
                     <strong>{a.title}</strong>
                     <p>{a.body}</p>
                     <small>{a.created_at?.slice(0, 10)}</small>
+                    {expandedAnnouncement === a.announcement_id && (
+                      <div className="announcement-expanded">
+                        <p>{a.body}</p>
+                        {a.category === 'club' && club && <p>Club: {club.club_name}</p>}
+                        <small>Posted on {a.created_at?.slice(0, 10)}</small>
+                      </div>
+                    )}
                   </div>
                 </div>
               );});})()}

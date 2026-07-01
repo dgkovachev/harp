@@ -55,11 +55,15 @@ class AnnouncementHandler extends PDO_CON{
 
     public function getAnnouncementByID(array $params){
         $this->requireAuth();
+        $user = $this->tokenService->getCurrentUser();
         $stmt = $this->pdo->prepare("SELECT * FROM announcements WHERE announcement_id = ?");
         $stmt->execute([$params['id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row) echo json_encode(['success' => true, 'data' => $row]);
-        else echo json_encode(['success' => false, 'message' => 'Announcement not found']);
+        if ($row) {
+            $stmt2 = $this->pdo->prepare("INSERT IGNORE INTO user_announcement_read (user_id, announcement_id, read_at) VALUES (?, ?, NOW())");
+            $stmt2->execute([$user['user_id'], $row['announcement_id']]);
+            echo json_encode(['success' => true, 'data' => $row]);
+        } else echo json_encode(['success' => false, 'message' => 'Announcement not found']);
     }
 
     public function getAllAnnouncements(array $params){
@@ -70,17 +74,22 @@ class AnnouncementHandler extends PDO_CON{
         $role = $user['role'] ?? 'student';
 
         if ($role === 'organizer') {
-            $stmt = $this->pdo->prepare("SELECT a.* FROM announcements a WHERE a.school_id = ? ORDER BY a.created_at DESC");
-            $stmt->execute([$school]);
+            $stmt = $this->pdo->prepare(
+                "SELECT a.*, (uar.user_id IS NOT NULL) AS is_read FROM announcements a
+                 LEFT JOIN user_announcement_read uar ON uar.announcement_id = a.announcement_id AND uar.user_id = ?
+                 WHERE a.school_id = ? ORDER BY a.created_at DESC"
+            );
+            $stmt->execute([$userId, $school]);
         } else {
             $stmt = $this->pdo->prepare(
-                "SELECT a.* FROM announcements a
+                "SELECT a.*, (uar.user_id IS NOT NULL) AS is_read FROM announcements a
+                 LEFT JOIN user_announcement_read uar ON uar.announcement_id = a.announcement_id AND uar.user_id = ?
                  LEFT JOIN club_members cm ON a.club_id = cm.club_id AND cm.user_id = ?
                  WHERE a.school_id = ?
                    AND (a.category != 'club' OR cm.user_id IS NOT NULL)
                  ORDER BY a.created_at DESC"
             );
-            $stmt->execute([$userId, $school]);
+            $stmt->execute([$userId, $userId, $school]);
         }
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $rows]);
@@ -92,6 +101,14 @@ class AnnouncementHandler extends PDO_CON{
         $stmt->execute(['%' . $params['title'] . '%']);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $rows]);
+    }
+
+    public function markAnnouncementAsRead(array $params){
+        $this->requireAuth();
+        $user = $this->tokenService->getCurrentUser();
+        $stmt = $this->pdo->prepare("INSERT IGNORE INTO user_announcement_read (user_id, announcement_id, read_at) VALUES (?, ?, NOW())");
+        $stmt->execute([$user['user_id'], $params['id']]);
+        echo json_encode(['success' => true]);
     }
 
     public function updateAnnouncement(array $params){

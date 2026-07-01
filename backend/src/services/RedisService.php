@@ -2,6 +2,7 @@
 namespace App;
 
 use Exception;
+use PDO;
 
 class RedisService extends REDIS_CON
 {
@@ -9,6 +10,12 @@ class RedisService extends REDIS_CON
     private $sessionTtl = 86400;
     private $maxLoginAttempts = 5;
     private $loginBlockMinutes = 15;
+    private static $pdo = null;
+
+    public static function setPdo(PDO $pdo)
+    {
+        self::$pdo = $pdo;
+    }
 
     public function __construct()
     {
@@ -94,5 +101,17 @@ class RedisService extends REDIS_CON
             'type'       => $type,
             'data'       => json_encode($data),
         ], '*');
+
+        if (self::$pdo) {
+            $stmt = self::$pdo->prepare(
+                "INSERT INTO notification_logs (type, recipient_email, recipient_name, payload, created_at) VALUES (?, ?, ?, ?, NOW())"
+            );
+            $stmt->execute([
+                $type,
+                $data['email'] ?? null,
+                $data['name'] ?? null,
+                json_encode($data),
+            ]);
+        }
     }
 }

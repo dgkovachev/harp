@@ -79,6 +79,17 @@ class Worker
                 }
                 break;
 
+            case "verified":
+                $email = $data['email'] ?? '';
+                $name = htmlspecialchars($data['name'] ?? 'User');
+                if ($email) {
+                    $htmlBody = "<h2>Welcome to HARP!</h2><p>Hello {$name},</p><p>Your email has been verified successfully. You can now access all features of HARP.</p>";
+                    $textBody = "Hello {$name},\n\nYour email has been verified successfully. You can now access all features of HARP.";
+                    $success = $this->mailer->sendMail($email, "Email Verified – Welcome to HARP!", $htmlBody, $textBody);
+                    echo $success ? "  ✅ Verified email sent\n" : "  ❌ SMTP failed\n";
+                }
+                break;
+
             case "registration_waitlisted":
                 $email = $data['email'] ?? '';
                 $name = htmlspecialchars($data['name'] ?? 'User');

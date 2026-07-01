@@ -358,6 +358,11 @@ class Authentication extends PDO_CON
         $stmt = $this->pdo->prepare('UPDATE users SET is_verified = 1 WHERE user_email = ?');
         $stmt->execute([$email]);
 
+        $this->redis->pushNotification('verified', [
+            'email' => $email,
+            'name' => $user['display_name'] ?? 'User',
+        ]);
+
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             header("Location: $frontendUrl/login?verified=1&token=$token");
             exit;

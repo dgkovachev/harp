@@ -14,6 +14,7 @@ use App\EventHandler;
 use App\ClubHandler;
 use App\RedisService;
 use App\TokenService;
+use PDO;
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -34,6 +35,13 @@ ini_set('display_errors', '1');
 try {
     $router = new Router();
     $redis = new RedisService();
+    $pdo = new PDO(
+        'mysql:host=' . ($_ENV['DB_HOST'] ?? '127.0.0.1') . ';dbname=' . ($_ENV['DB_NAME'] ?? 'harp') . ';charset=utf8mb4',
+        $_ENV['DB_USER'] ?? 'root',
+        $_ENV['DB_PASS'] ?? ''
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    RedisService::setPdo($pdo);
     $tokenService = new TokenService($redis);
     $auth = new Authentication();
     $AnnouncementHandler = new AnnouncementHandler($tokenService);

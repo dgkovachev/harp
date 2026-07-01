@@ -832,6 +832,21 @@ button {
   color: var(--tab-active-text);
 }
 
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
 .home-nav-logout {
   border: 1px solid var(--card-border);
   background: transparent;
@@ -1204,6 +1219,21 @@ button {
   gap: 0.15rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--section-border);
+  cursor: pointer;
+}
+
+.home-announcement-item.unread strong {
+  color: var(--accent);
+}
+
+.home-announcement-item.unread::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 0.5rem;
 }
 
 .home-event-item:last-child,
@@ -1238,6 +1268,12 @@ button {
   background: var(--card-bg);
   padding: 1rem 1.25rem;
   transition: background 0.35s, border-color 0.35s;
+  cursor: pointer;
+}
+
+.home-list-item.unread {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--card-bg));
 }
 
 .home-list-actions {
@@ -1270,6 +1306,20 @@ button {
   gap: 0.3rem;
   min-width: 0;
   flex: 1;
+}
+
+.home-list-item.expanded {
+  border-color: var(--accent);
+}
+
+.announcement-expanded {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--section-border);
+}
+
+.announcement-expanded p {
+  margin: 0.25rem 0;
 }
 
 .event-club-badge {
