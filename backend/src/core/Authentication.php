@@ -20,13 +20,15 @@ class Authentication extends PDO_CON
     {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (!$this->redis->checkLoginRateLimit($data['user_email'] ?? '')) {
-            $ttl = $this->redis->getLoginBlockTTL($data['user_email']);
+        $identifier = $data['username'] ?? $data['user_email'] ?? '';
+
+        if (!$this->redis->checkLoginRateLimit($identifier)) {
+            $ttl = $this->redis->getLoginBlockTTL($identifier);
             $this->HandleError("Too many attempts. Try again in {$ttl} seconds", 429);
         }
 
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE user_email = ?");
-        $stmt->execute([$data['user_email']]);
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE user_email = ? OR display_name = ?");
+        $stmt->execute([$identifier, $identifier]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$user) {
             $this->HandleError('User not found', 404);
@@ -37,12 +39,12 @@ class Authentication extends PDO_CON
                     $this->HandleError('Please verify your email before signing in', 403);
              }
 
-            $this->redis->clearLoginAttempts($data['user_email']);
+            $this->redis->clearLoginAttempts($identifier);
             unset($user['password_hash'], $user['join_code'], $user['promoted_by'], $user['promoted_at']);
             $token = $this->redis->createSession($user);
             echo json_encode(['success' => true, 'token' => $token, 'data' => $user]);
         } else {
-            $this->redis->incrementLoginAttempts($data['user_email'] ?? '');
+            $this->redis->incrementLoginAttempts($identifier);
             $this->HandleError('Invalid email or password', 401);
         }
     }
